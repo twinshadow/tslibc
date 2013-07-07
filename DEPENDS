@@ -1,0 +1,9 @@
+Build depends--
+gmake
+c-standard library, std=c90
+c-compiler, std=c90
+
+check (http://check.sourceforge.net) - Unit tests
+valgrind (http://valgrind.org) - Unit tests
+clang (http://clang.llvm.org) - Analyzer, CLDoc
+cldoc (https://github.com/jessevdk/cldoc) - Documentation
