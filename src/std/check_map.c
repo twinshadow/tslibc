@@ -24,54 +24,54 @@
 */
 
 #include "twinshadow/check.h"
-#include "twinshadow/hash.h"
+#include "twinshadow/map.h"
 #include "twinshadow/twinshadow.h"
 
 START_TEST(test_hash_add)
 {
-	struct ts_table_s *table;
-	struct ts_table_item_s **item;
+	struct ts_map_s *map;
+	struct ts_map_item_s **item;
 	char *test;
 
-	table = ts_table_new(4);
+	map = ts_map_new(4);
 	test = "Hello World!";
 
-	ts_table_add(test, strlen(test), table);
-	item = ts_table_lookup(test, strlen(test), table);
+	ts_map_add(test, strlen(test), map);
+	item = ts_map_lookup(test, strlen(test), map);
 	ck_assert(*item != NULL);
 
-	ts_table_free(table);
+	ts_map_free(map);
 }
 END_TEST
 
 START_TEST(test_hash_rem)
 {
-	struct ts_table_s *table;
-	struct ts_table_item_s **item;
+	struct ts_map_s *map;
+	struct ts_map_item_s **item;
 	char *test;
 
-	table = ts_table_new(4);
+	map = ts_map_new(4);
 	test = "Hello World!";
 
-	ts_table_add(test, strlen(test), table);
-	item = ts_table_lookup(test, strlen(test), table);
+	ts_map_add(test, strlen(test), map);
+	item = ts_map_lookup(test, strlen(test), map);
 	ck_assert(*item != NULL);
 
-	ts_table_rem(test, strlen(test), table);
-	item = ts_table_lookup(test, strlen(test), table);
+	ts_map_rem(test, strlen(test), map);
+	item = ts_map_lookup(test, strlen(test), map);
 	ck_assert(*item == NULL);
 
-	ts_table_free(table);
+	ts_map_free(map);
 }
 END_TEST
 
 START_TEST(test_hash_add_collisions)
 {
-	struct ts_table_s *table;
-	struct ts_table_item_s **item;
+	struct ts_map_s *map;
+	struct ts_map_item_s **item;
 	int idx, limit;
 
-	table = ts_table_new(1);
+	map = ts_map_new(1);
 	char *test[] = {
 	   "The void",
 	   "The Great Gatsby",
@@ -83,22 +83,22 @@ START_TEST(test_hash_add_collisions)
 
 	for (idx = 0; idx < limit; idx++)
 	{
-		ts_table_add(test[idx], strlen(test[idx]), table);
-		item = ts_table_lookup(test[idx], strlen(test[idx]), table);
+		ts_map_add(test[idx], strlen(test[idx]), map);
+		item = ts_map_lookup(test[idx], strlen(test[idx]), map);
 		ck_assert(*item != NULL);
 	}
 
-	ts_table_free(table);
+	ts_map_free(map);
 }
 END_TEST
 
 START_TEST(test_hash_rem_collisions)
 {
-	struct ts_table_s *table;
-	struct ts_table_item_s **item;
+	struct ts_map_s *map;
+	struct ts_map_item_s **item;
 	int idx, idx2, limit;
 
-	table = ts_table_new(1);
+	map = ts_map_new(1);
 	char *test[] = {
 	   "The void",
 	   "The Great Gatsby",
@@ -110,24 +110,24 @@ START_TEST(test_hash_rem_collisions)
 
 	for (idx = 0; idx < limit; idx++)
 	{
-		ts_table_add(test[idx], strlen(test[idx]), table);
-		item = ts_table_lookup(test[idx], strlen(test[idx]), table);
+		ts_map_add(test[idx], strlen(test[idx]), map);
+		item = ts_map_lookup(test[idx], strlen(test[idx]), map);
 		ck_assert(*item != NULL);
 	}
 
 	for (idx = 0; idx < limit; idx++)
 	{
-		ts_table_rem(test[idx], strlen(test[idx]), table);
-		item = ts_table_lookup(test[idx], strlen(test[idx]), table);
+		ts_map_rem(test[idx], strlen(test[idx]), map);
+		item = ts_map_lookup(test[idx], strlen(test[idx]), map);
 		ck_assert(*item == NULL);
 		for (idx2 = idx + 1; idx2 < limit; idx2++)
 		{
-			item = ts_table_lookup(test[idx2], strlen(test[idx2]), table);
+			item = ts_map_lookup(test[idx2], strlen(test[idx2]), map);
 			ck_assert_msg(*item != NULL, "idx2: %d\nstr: %s\n", idx2, test[idx2]);
 		}
 	}
 
-	ts_table_free(table);
+	ts_map_free(map);
 }
 END_TEST
 

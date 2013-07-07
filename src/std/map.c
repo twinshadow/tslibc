@@ -23,15 +23,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "twinshadow/hash.h"
+#include "twinshadow/map.h"
 
-TS_VEC_NEW(ts_tabmap, struct ts_table_item_s *);
-TS_VEC_FREE(ts_tabmap);
+TS_VEC_NEW(ts_mapvec, struct ts_map_item_s *);
+TS_VEC_FREE(ts_mapvec);
 
-ts_table_key_t ts_oat_hash(void *key, size_t len)
+ts_map_key_t ts_oat_hash(void *key, size_t len)
 {
 	unsigned char *chr = key;
-	ts_table_key_t hash = 0;
+	ts_map_key_t hash = 0;
 	size_t idx;
 
 	for (idx = 0; idx < len; idx++) {
@@ -47,23 +47,23 @@ ts_table_key_t ts_oat_hash(void *key, size_t len)
 	return hash;
 }
 
-struct ts_table_s *
-ts_table_new(size_t logsize)
+struct ts_map_s *
+ts_map_new(size_t logsize)
 {
-	struct ts_table_s *buf;
+	struct ts_map_s *buf;
 	size_t count;
 
 	count = 1 << logsize;
 
-	buf = calloc(1, sizeof(struct ts_table_s));
+	buf = calloc(1, sizeof(struct ts_map_s));
 	if (buf == NULL)
 	{
 		errno = ENOMEM;
 		return NULL;
 	}
 
-	buf->table = ts_tabmap_new(count);
-	if (buf->table == NULL)
+	buf->map = ts_mapvec_new(count);
+	if (buf->map == NULL)
 	{
 		free(buf);
 		errno = ENOMEM;
@@ -80,32 +80,35 @@ ts_table_new(size_t logsize)
 }
 
 void
-ts_table_free(struct ts_table_s *ptr)
+ts_map_free(struct ts_map_s *ptr)
 {
-	struct ts_table_item_s **item;
+	struct ts_map_item_s **item, *next, *swap;
 	if (ptr == NULL)
 		return;
 
-	TS_VEC_FOREACH(item, ptr->table) {
-		if (*item != NULL)
-			free(*item);
+	TS_VEC_FOREACH(item, ptr->map) {
+		for (next = *item; next != NULL; next = swap){
+			swap = next->next;
+			if (next != NULL)
+				free(next);
+		}
 	}
-	ts_tabmap_free(ptr->table);
+	ts_mapvec_free(ptr->map);
 	free(ptr);
 	ptr = NULL;
 }
 
-struct ts_table_item_s **
-ts_table_lookup(void *ptr, size_t len, struct ts_table_s *table)
+struct ts_map_item_s **
+ts_map_lookup(void *ptr, size_t len, struct ts_map_s *map)
 {
-	ts_table_key_t key;
-	struct ts_table_item_s **item;
+	ts_map_key_t key;
+	struct ts_map_item_s **item;
 
-	if (table->hash == NULL)
+	if (map->hash == NULL)
 		return (NULL);
 
-	key = table->hash(ptr, len);
-	item = &table->table->vec[key % table->len];
+	key = map->hash(ptr, len);
+	item = &map->map->vec[key % map->len];
 	if (*item == NULL)
 		return (item);
 	if (key == (*item)->hash)
@@ -119,47 +122,47 @@ ts_table_lookup(void *ptr, size_t len, struct ts_table_s *table)
 	return (item);
 }
 
-struct ts_table_item_s *
-ts_table_item_new(void *ptr, size_t len, struct ts_table_s *table)
+struct ts_map_item_s *
+ts_map_item_new(void *ptr, size_t len, struct ts_map_s *map)
 {
-	struct ts_table_item_s *buf;
-	buf = calloc(1, sizeof(struct ts_table_item_s));
+	struct ts_map_item_s *buf;
+	buf = calloc(1, sizeof(struct ts_map_item_s));
 	if (buf == NULL) {
 		errno = ENOMEM;
 		return (NULL);
 	}
-	buf->hash = table->hash(ptr, len);
+	buf->hash = map->hash(ptr, len);
 	return (buf);
 }
 
-struct ts_table_item_s *
-ts_table_add(void *ptr, size_t len, struct ts_table_s *table)
+struct ts_map_item_s *
+ts_map_add(void *ptr, size_t len, struct ts_map_s *map)
 {
-	struct ts_table_item_s **item;
-	item = ts_table_lookup(ptr, len, table);
+	struct ts_map_item_s **item;
+	item = ts_map_lookup(ptr, len, map);
 	if (*item != NULL)
 		return (NULL);
-	*item = ts_table_item_new(ptr, len, table);
-	table->count++;
+	*item = ts_map_item_new(ptr, len, map);
+	map->count++;
 	return (*item);
 }
 
-struct ts_table_item_s *
-ts_table_fetch(void *ptr, size_t len, struct ts_table_s *table)
+struct ts_map_item_s *
+ts_map_fetch(void *ptr, size_t len, struct ts_map_s *map)
 {
-	return (*ts_table_lookup(ptr, len, table));
+	return (*ts_map_lookup(ptr, len, map));
 }
 
 void
-ts_table_rem(void *ptr, size_t len, struct ts_table_s *table)
+ts_map_rem(void *ptr, size_t len, struct ts_map_s *map)
 {
-	struct ts_table_item_s **item;
-	struct ts_table_item_s *next;
-	item = ts_table_lookup(ptr, len, table);
+	struct ts_map_item_s **item;
+	struct ts_map_item_s *next;
+	item = ts_map_lookup(ptr, len, map);
 	if (*item == NULL)
 		return;
 	next = (*item)->next;
 	free(*item);
-	table->count--;
+	map->count--;
 	*item = next;
 }
