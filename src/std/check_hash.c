@@ -27,11 +27,6 @@
 #include "twinshadow/hash.h"
 #include "twinshadow/twinshadow.h"
 
-ts_table_key_t ts_collision_hash(void *key, size_t len)
-{
-	return ((unsigned char*)key)[0];
-}
-
 START_TEST(test_hash_add)
 {
 	struct ts_table_s *table;
@@ -76,16 +71,17 @@ START_TEST(test_hash_add_collisions)
 	struct ts_table_item_s **item;
 	int idx, limit;
 
-	table = ts_table_new(4);
-	table->hash = ts_collision_hash;
+	table = ts_table_new(1);
 	char *test[] = {
 	   "The void",
 	   "The Great Gatsby",
 	   "The purge",
 	   "The Weather Channel",
+	   "The World",
 	};
+	limit = 5;
 
-	for (idx = 0, limit = 4; idx < limit; idx++)
+	for (idx = 0; idx < limit; idx++)
 	{
 		ts_table_add(test[idx], strlen(test[idx]), table);
 		item = ts_table_lookup(test[idx], strlen(test[idx]), table);
@@ -100,32 +96,35 @@ START_TEST(test_hash_rem_collisions)
 {
 	struct ts_table_s *table;
 	struct ts_table_item_s **item;
-	int idx, limit;
-	char *swap;
+	int idx, idx2, limit;
 
-	table = ts_table_new(4);
-	table->hash = ts_collision_hash;
+	table = ts_table_new(1);
 	char *test[] = {
 	   "The void",
 	   "The Great Gatsby",
 	   "The purge",
 	   "The Weather Channel",
+	   "The World",
 	};
+	limit = 5;
 
-	for (idx = 0, limit = 4; idx < limit; idx++)
+	for (idx = 0; idx < limit; idx++)
 	{
 		ts_table_add(test[idx], strlen(test[idx]), table);
 		item = ts_table_lookup(test[idx], strlen(test[idx]), table);
 		ck_assert(*item != NULL);
 	}
 
-	SWAP(test[0], test[2], swap);
-	SWAP(test[1], test[3], swap);
-	for (idx = 0, limit = 4; idx < limit; idx++)
+	for (idx = 0; idx < limit; idx++)
 	{
 		ts_table_rem(test[idx], strlen(test[idx]), table);
 		item = ts_table_lookup(test[idx], strlen(test[idx]), table);
 		ck_assert(*item == NULL);
+		for (idx2 = idx + 1; idx2 < limit; idx2++)
+		{
+			item = ts_table_lookup(test[idx2], strlen(test[idx2]), table);
+			ck_assert_msg(*item != NULL, "idx2: %d\nstr: %s\n", idx2, test[idx2]);
+		}
 	}
 
 	ts_table_free(table);

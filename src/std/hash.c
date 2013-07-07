@@ -111,7 +111,7 @@ ts_table_lookup(void *ptr, size_t len, struct ts_table_s *table)
 	if (key == (*item)->hash)
 		return (item);
 
-	for (item = &((*item)->next); item != NULL; item = &((*item)->next)) {
+	for (item = &((*item)->next); *item != NULL; item = &((*item)->next)) {
 		if (key == (*item)->hash)
 			return (item);
 	}
@@ -154,12 +154,11 @@ void
 ts_table_rem(void *ptr, size_t len, struct ts_table_s *table)
 {
 	struct ts_table_item_s **item;
-	struct ts_table_item_s *next = NULL;
+	struct ts_table_item_s *next;
 	item = ts_table_lookup(ptr, len, table);
 	if (*item == NULL)
 		return;
-	if ((*item)->next != NULL)
-		next = (*item)->next;
+	next = (*item)->next;
 	free(*item);
 	table->count--;
 	*item = next;
