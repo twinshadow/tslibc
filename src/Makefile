@@ -34,7 +34,7 @@ check-build: ${OBJS} ${CHECK_OBJS}
 check-run: check-build
 	set ERROR_CHECK=0;			\
 	for CHK in ${CHECK_OBJS}; do		\
-		valgrind --suppressions=${TOP}/ts_valgrind.supp --leak-check=full --quiet $$CHK;\
+		valgrind --suppressions=${TOP}/ts_valgrind.supp --leak-check=full --quiet ./$$CHK;\
 		if [ "$$?" -ne 0 ]; then	\
 			set ERROR_CHECK=1;	\
 		fi;				\
