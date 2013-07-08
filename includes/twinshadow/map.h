@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
+
 #include "twinshadow/vec.h"
 
 TS_VEC_HEAD(ts_mapvec, struct ts_map_item_s *);

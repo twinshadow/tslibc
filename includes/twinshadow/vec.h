@@ -29,8 +29,8 @@
  * operational-safety */
 
 #include <errno.h>
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* Twinshadow vector meta-typing */

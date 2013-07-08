@@ -23,7 +23,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "twinshadow/check.h"
+#include "check/twinshadow.h"
 #include "twinshadow/vec.h"
 
 TS_VEC_HEAD(ivec, int);

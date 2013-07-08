@@ -24,8 +24,10 @@
 */
 
 #include <errno.h>
+#include <stdint.h>
+
+#include "twinshadow/macro.h"
 #include "twinshadow/string.h"
-#include "twinshadow/twinshadow.h"
 
 void
 ts_strnrev(char *str, const size_t len)

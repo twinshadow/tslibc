@@ -23,9 +23,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "twinshadow/check.h"
+#include "check/twinshadow.h"
 #include "twinshadow/map.h"
-#include "twinshadow/twinshadow.h"
 
 START_TEST(test_hash_add)
 {

@@ -23,8 +23,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "check/twinshadow.h"
 #include "twinshadow/string.h"
-#include "twinshadow/check.h"
 
 START_TEST(test_strshift_pos1)
 {

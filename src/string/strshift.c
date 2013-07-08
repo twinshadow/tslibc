@@ -24,8 +24,11 @@
 */
 
 #include <errno.h>
+#include <stdint.h>
+#include <stdlib.h>
+
 #include "twinshadow/string.h"
-#include "twinshadow/twinshadow.h"
+#include "twinshadow/macro.h"
 
 void
 ts_memshift(int offset, void *ptr, size_t len)

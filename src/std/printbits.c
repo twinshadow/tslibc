@@ -24,6 +24,7 @@
 */
 
 #include <stdio.h>
+
 void
 printbits(void *ptr, size_t len)
 {

@@ -23,7 +23,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "twinshadow/check.h"
+#include "check/twinshadow.h"
 #include "twinshadow/string.h"
 
 START_TEST(test_strrev)

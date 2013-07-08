@@ -24,8 +24,10 @@
 */
 
 #include <errno.h>
+#include <stdint.h>
+
+#include "twinshadow/macro.h"
 #include "twinshadow/string.h"
-#include "twinshadow/twinshadow.h"
 
 void
 ts_strnrot(int offset, char *str, size_t len)
