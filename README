@@ -1,0 +1,5 @@
+tslibc - The TwinShadow library for C
+
+This project contains some code that I use and re-use in other projects. It is
+not a stand-alone library, like the "libc" name might imply, but is intended to
+supplement the existing standard libraries.
