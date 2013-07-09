@@ -49,8 +49,8 @@ install: ${INSTALL_TARGETS}
 docs:
 	cldoc ${CFLAGS} -- \
 		--language=c --report \
-		--merge=${TOP}/docs/_static \
-		--output=${TOP}/docs \
+		--merge=${TOP}/docs/_cldoc_static \
+		--output=${TOP}/docs/html \
 		$(shell find \( -name '*.c' -or -name '*.h' \) -not -name 'check_*')
 
 everything: clean analyze check all docs install

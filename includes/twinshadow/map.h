@@ -30,37 +30,160 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "twinshadow/hash.h"
 #include "twinshadow/vec.h"
 
-TS_VEC_HEAD(ts_mapvec, struct ts_map_item_s *);
+typedef ts_hash_int_t ts_map_key_t;
 
-typedef uint16_t ts_map_key_t;
+/* Typed structures */
 
-struct ts_map_item_s {
-	struct ts_map_item_s *next;
-	ts_map_key_t hash;
-	void *ptr;
-};
+#define TS_MAP_ITEM(__item, __proto)	\
+struct __item {				\
+	struct __item *next;		\
+	ts_map_key_t hash;		\
+	__proto;			\
+}
 
-struct ts_map_s {
-	ts_map_key_t (*hash)(void *ptr, size_t len);
-	struct ts_mapvec *map;
-	size_t logsize;
-	size_t count;
-	size_t len;
-};
+#define TS_MAP_VEC(__vec, __item)	\
+TS_VEC_HEAD(__vec, struct __item *);
 
-/* Memory */
-struct ts_map_item_s * ts_map_item_new(void *ptr, size_t len, struct ts_map_s *map);
-struct ts_map_s * ts_map_new(size_t logsize);
-void ts_map_free(struct ts_map_s *map);
-void ts_map_init(struct ts_map_s *map);
-void ts_map_resize(struct ts_map_s *map);
+#define TS_MAP_HEAD(__map, __vec)			\
+struct __map {						\
+	ts_map_key_t (*hash)(void *ptr, size_t len);	\
+	struct __vec *map;				\
+	size_t logsize;					\
+	size_t count;					\
+	size_t len;					\
+}
 
-/* Manipulation */
-struct ts_map_item_s ** ts_map_lookup(void *ptr, size_t len, struct ts_map_s *map);
-struct ts_map_item_s * ts_map_fetch(void *ptr, size_t len, struct ts_map_s *map);
-struct ts_map_item_s * ts_map_add(void *ptr, size_t len, struct ts_map_s *map);
-void ts_map_rem(void *ptr, size_t len, struct ts_map_s *map);
+#define TS_MAP_TYPES(__name, __proto)		\
+TS_MAP_ITEM(__name##_item, __proto);		\
+TS_MAP_VEC(__name##_vec, __name##_item);	\
+TS_MAP_HEAD(__name, __name##_vec);
+
+/* Typed Memory Functions */
+
+#define TS_MAP_NEW(__map, __vec)		\
+struct __map *					\
+__map##_new(size_t logsize){			\
+	struct __map *buf;			\
+	size_t count;				\
+	count = 1 << logsize;			\
+	if (count < 1)				\
+		return NULL;			\
+	buf = calloc(1, sizeof(struct __map));	\
+	if (buf == NULL) 			\
+		return NULL;			\
+	buf->map = __vec##_new(count);		\
+	if (buf->map == NULL) {			\
+		free(buf);			\
+		return NULL;			\
+	}					\
+	buf->logsize = logsize;			\
+	buf->len = count;			\
+	buf->hash = ts_hash_oat;		\
+	return (buf);				\
+}
+
+#define TS_MAP_FREE(__map, __vec)		\
+void						\
+__map##_free(struct __map *map) {		\
+	struct __map##_item **item, *next;	\
+	if (map == NULL)			\
+		return;				\
+	TS_VEC_FOREACH(item, map->map) {	\
+		for (;*item != NULL;		\
+		     *item = next) {		\
+			next = (*item)->next;	\
+			free(*item);		\
+		}				\
+	}					\
+	__vec##_free(map->map);			\
+	free(map);				\
+	map = NULL;				\
+}
+
+#define TS_MAP_RESIZE(__map, __vec)			\
+void							\
+__map##_resize(struct __map *map, size_t logsize) {	\
+	size_t count;					\
+	if (map == NULL)				\
+		return;					\
+	if (map->logsize >= logsize)			\
+		return;					\
+	count = 1 << logsize;				\
+	if (count < 1)					\
+		return;					\
+	map->map = __vec##_resize(count);		\
+	if (map->map == NULL)				\
+		return;					\
+	map->logsize = logsize;				\
+	map->len = count;				\
+}
+
+/* Typed Manipulation Functions */
+
+#define TS_MAP_LOOKUP(__map, __item)				\
+struct __item **						\
+__map##_lookup(void *ptr, size_t len, struct __map *map) {	\
+	ts_map_key_t key;					\
+	struct __item **item;					\
+	if (map->hash == NULL)					\
+		return (NULL);					\
+	key = map->hash(ptr, len);				\
+	item = &map->map->vec[key % map->len];			\
+	if (*item == NULL)					\
+		return (item);					\
+	if (key == (*item)->hash)				\
+		return (item);					\
+	for (item = &((*item)->next);				\
+	     *item != NULL;					\
+	     item = &((*item)->next)) {				\
+		if (key == (*item)->hash)			\
+			return (item);				\
+	}							\
+	return (item);						\
+}
+
+#define TS_MAP_ADD(__map, __item)				\
+struct __item *							\
+__map##_add(void *ptr, size_t len, struct __map *map) {		\
+	struct __item **item;					\
+	item = __map##_lookup(ptr, len, map);			\
+	if (*item != NULL)					\
+		return (NULL);					\
+	*item = calloc(1, sizeof(struct __item));		\
+	if (*item == NULL)					\
+		return (NULL);					\
+	(*item)->hash = map->hash(ptr, len);			\
+	map->count++;						\
+	return (*item);						\
+}
+
+#define TS_MAP_REM(__map, __item)				\
+void								\
+__map##_rem(void *ptr, size_t len, struct __map *map) {		\
+	struct __item **item, *next;				\
+	if (map == NULL)					\
+		return;						\
+	item = __map##_lookup(ptr, len, map);			\
+	if (*item == NULL)					\
+		return;						\
+	next = (*item)->next;					\
+	free(*item);						\
+	map->count--;						\
+	*item = next;						\
+}
+
+#define TS_MAP_PROTOTYPES(__map, __vec, __item, __proto)	\
+TS_MAP_ITEM(__item, __proto);						\
+TS_MAP_VEC(__vec, __item);						\
+TS_MAP_HEAD(__map, __vec);						\
+struct __map * __map##_new(size_t logsize);				\
+void __map##_free(struct __map *map);					\
+void __map##_resize(struct __map *map, size_t logsize);		\
+struct __item ** __map##_lookup(void *ptr, size_t len, struct __map *map);\
+struct __item * __map##_add(void *ptr, size_t len, struct __map *map);	\
+void __map##_rem(void *ptr, size_t len, struct __map *map);
 
 #endif /* TWINSHADOW_HASH_H */

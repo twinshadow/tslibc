@@ -26,16 +26,27 @@
 #include "check/twinshadow.h"
 #include "twinshadow/map.h"
 
+TS_MAP_PROTOTYPES(ts_map, ts_mapvec, ts_map_item, void *ptr);
+
+TS_VEC_NEW(ts_mapvec, struct ts_map_item *);
+TS_VEC_FREE(ts_mapvec);
+
+TS_MAP_NEW(ts_map, ts_mapvec);
+TS_MAP_FREE(ts_map, ts_mapvec);
+TS_MAP_LOOKUP(ts_map, ts_map_item);
+TS_MAP_ADD(ts_map, ts_map_item);
+TS_MAP_REM(ts_map, ts_map_item);
+
 START_TEST(test_hash_add)
 {
-	struct ts_map_s *map;
-	struct ts_map_item_s **item;
+	struct ts_map *map;
+	struct ts_map_item **item;
 	char *test;
 
 	map = ts_map_new(4);
 	test = "Hello World!";
 
-	ts_map_add(test, strlen(test), map);
+	ck_assert(ts_map_add(test, strlen(test), map) != NULL);
 	item = ts_map_lookup(test, strlen(test), map);
 	ck_assert(*item != NULL);
 
@@ -45,8 +56,8 @@ END_TEST
 
 START_TEST(test_hash_rem)
 {
-	struct ts_map_s *map;
-	struct ts_map_item_s **item;
+	struct ts_map *map;
+	struct ts_map_item **item;
 	char *test;
 
 	map = ts_map_new(4);
@@ -66,8 +77,8 @@ END_TEST
 
 START_TEST(test_hash_add_collisions)
 {
-	struct ts_map_s *map;
-	struct ts_map_item_s **item;
+	struct ts_map *map;
+	struct ts_map_item **item;
 	int idx, limit;
 
 	map = ts_map_new(1);
@@ -93,8 +104,8 @@ END_TEST
 
 START_TEST(test_hash_rem_collisions)
 {
-	struct ts_map_s *map;
-	struct ts_map_item_s **item;
+	struct ts_map *map;
+	struct ts_map_item **item;
 	int idx, idx2, limit;
 
 	map = ts_map_new(1);

@@ -22,14 +22,26 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef TWINSHADOW_TWINSHADOW_H
-#define TWINSHADOW_TWINSHADOW_H
 
+#include <stdlib.h>
 #include "twinshadow/hash.h"
-#include "twinshadow/map.h"
-#include "twinshadow/net.h"
-#include "twinshadow/string.h"
-#include "twinshadow/vec.h"
 
-#endif /* TWINSHADOW_TWINSHADOW_H */
+ts_hash_int_t
+ts_hash_oat(void *key, size_t len)
+{
+	unsigned char *chr = key;
+	ts_hash_int_t hash = 0;
+	size_t idx;
 
+	for (idx = 0; idx < len; idx++) {
+		hash += chr[idx];
+		hash += (hash << 10);
+		hash ^= (hash >> 6);
+	}
+
+	hash += (hash << 3);
+	hash ^= (hash >> 11);
+	hash += (hash << 15);
+
+	return hash;
+}
