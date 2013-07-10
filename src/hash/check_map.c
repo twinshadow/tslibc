@@ -26,16 +26,16 @@
 #include "check/twinshadow.h"
 #include "twinshadow/map.h"
 
-TS_MAP_PROTOTYPES(ts_map, ts_mapvec, ts_map_item, void *ptr);
+TS_MAP_PROTOTYPES(ts_map, void*, void*);
 
-TS_VEC_NEW(ts_mapvec, struct ts_map_item *);
-TS_VEC_FREE(ts_mapvec);
+TS_ARRAY_NEW(ts_map_array, struct ts_map_item *);
+TS_ARRAY_FREE(ts_map_array);
 
-TS_MAP_NEW(ts_map, ts_mapvec);
-TS_MAP_FREE(ts_map, ts_mapvec);
-TS_MAP_LOOKUP(ts_map, ts_map_item);
-TS_MAP_ADD(ts_map, ts_map_item);
-TS_MAP_REM(ts_map, ts_map_item);
+TS_MAP_NEW(ts_map);
+TS_MAP_FREE(ts_map, free);
+TS_MAP_LOOKUP(ts_map);
+TS_MAP_ADD(ts_map);
+TS_MAP_REM(ts_map);
 
 START_TEST(test_hash_add)
 {

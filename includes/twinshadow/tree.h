@@ -22,17 +22,26 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef TWINSHADOW_TWINSHADOW_H
-#define TWINSHADOW_TWINSHADOW_H
 
-#include "twinshadow/array.h"
-#include "twinshadow/hash.h"
-#include "twinshadow/map.h"
-#include "twinshadow/net.h"
-#include "twinshadow/set.h"
-#include "twinshadow/string.h"
-#include "twinshadow/tree.h"
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "twinshadow/vector.h"
 
-#endif /* TWINSHADOW_TWINSHADOW_H */
+#define TS_TREE_NODE(__name, __type)	\
+struct __name##_node {			\
+	__type *value;			\
+	struct __name##_node *lt;	\
+	struct __name##_node *gt;	\
+}
 
+#define TS_TREE_HEAD(__name)		\
+struct __name {				\
+	struct __name##_node *tree;	\
+}
+
+#define TS_BAL_TREE_HEAD(__name)	\
+struct __name {				\
+	struct __name##_node *tree;	\
+}

@@ -24,12 +24,12 @@
 */
 
 #include "check/twinshadow.h"
-#include "twinshadow/vec.h"
+#include "twinshadow/array.h"
 
-TS_VEC_HEAD(ivec, int);
-TS_VEC_NEW(ivec, int);
-TS_VEC_FREE(ivec);
-TS_VEC_RESIZE(ivec, int);
+TS_ARRAY_HEAD(ivec, int);
+TS_ARRAY_NEW(ivec, int);
+TS_ARRAY_FREE(ivec);
+TS_ARRAY_RESIZE(ivec, int);
 
 START_TEST(test_vec)
 {
@@ -38,33 +38,33 @@ START_TEST(test_vec)
 
 	test = ivec_new(10);
 	i = 0;
-	TS_VEC_FOREACH(idx, test) {
+	TS_ARRAY_FOREACH(idx, test) {
 		*idx = i++;
 	}
 
 	i = 9;
-	TS_VEC_RFOREACH(idx, test) {
+	TS_ARRAY_RFOREACH(idx, test) {
 		ck_assert_int_eq(*idx, i--);
 	}
 
 	ivec_resize(test, 20);
 	i = 0;
-	TS_VEC_FOREACH(idx, test) {
+	TS_ARRAY_FOREACH(idx, test) {
 		*idx = i++;
 	}
 
 	i = 19;
-	TS_VEC_RFOREACH(idx, test) {
+	TS_ARRAY_RFOREACH(idx, test) {
 		ck_assert_int_eq(*idx, i--);
 	}
 	ivec_free(test);
 }
 END_TEST
 
-TS_VEC_HEAD(svec, char*);
-TS_VEC_NEW(svec, char*);
-TS_VEC_FREE(svec);
-TS_VEC_RESIZE(svec, char*);
+TS_ARRAY_HEAD(svec, char*);
+TS_ARRAY_NEW(svec, char*);
+TS_ARRAY_FREE(svec);
+TS_ARRAY_RESIZE(svec, char*);
 
 START_TEST(test_vec2)
 {
@@ -81,16 +81,16 @@ START_TEST(test_vec2)
 
 	test = svec_new(5);
 	i = 0;
-	TS_VEC_FOREACH(idx, test) {
+	TS_ARRAY_FOREACH(idx, test) {
 		*idx = strdup(expect[i++]);
 	}
 
 	i = 4;
-	TS_VEC_RFOREACH(idx, test) {
+	TS_ARRAY_RFOREACH(idx, test) {
 		ck_assert_str_eq(*idx, expect[i--]);
 	}
 
-	TS_VEC_FOREACH(idx, test) {
+	TS_ARRAY_FOREACH(idx, test) {
 		free(*idx);
 	}
 	svec_free(test);
