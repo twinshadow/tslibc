@@ -27,10 +27,6 @@
 #include "twinshadow/map.h"
 
 TS_MAP_PROTOTYPES(ts_map, void*, void*);
-
-TS_ARRAY_NEW(ts_map_array, struct ts_map_item *);
-TS_ARRAY_FREE(ts_map_array);
-
 TS_MAP_NEW(ts_map);
 TS_MAP_FREE(ts_map, free);
 TS_MAP_LOOKUP(ts_map);

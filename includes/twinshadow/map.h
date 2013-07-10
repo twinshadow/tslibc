@@ -31,7 +31,6 @@
 #include <stdlib.h>
 
 #include "twinshadow/hash.h"
-#include "twinshadow/array.h"
 
 typedef ts_hash_int_t ts_map_key_t;
 
@@ -49,39 +48,54 @@ struct __name##_item {				\
 struct __name {					\
 	ts_map_key_t (*hash)(void *ptr,		\
 			     size_t len);	\
-	struct __name##_array *map;		\
+	struct __name##_item **sentinal;	\
+	struct __name##_item **map;		\
 	size_t logsize;				\
 	size_t count;				\
 	size_t len;				\
 }
 
+/* iterators */
+
 #define TS_MAP_FOREACH(__var, __map)	\
-TS_ARRAY_FOREACH(__var, __map->map)	\
+for (__var = __head->map;		\
+     __var <= __head->sentinal;		\
+     __var++)				\
 	for (;*__var != NULL;		\
 	     *__var = (*__var)->next)
 
-/* Typed Memory Functions */
+#define TS_MAP_RFOREACH(__var, __head)	\
+for (__var = __head->sentinal;		\
+     __var >= __head->map;		\
+     __var--)				\
+	for (;*__var != NULL;		\
+	     *__var = (*__var)->next)
+
+
+/* Memory functions */
 
 #define TS_MAP_NEW(__name)			\
 struct __name *					\
 __name##_new(size_t logsize){			\
-	struct __name *buf;			\
+	struct __name *head;			\
 	size_t count;				\
 	count = 1 << logsize;			\
 	if (count < 1)				\
 		return NULL;			\
-	buf = calloc(1, sizeof(struct __name));	\
-	if (buf == NULL) 			\
+	head = calloc(1, sizeof(struct __name));\
+	if (head == NULL) 			\
 		return NULL;			\
-	buf->map = __name##_array_new(count);	\
-	if (buf->map == NULL) {			\
-		free(buf);			\
+	head->map = calloc(count,		\
+	    sizeof(struct __name##_item *));	\
+	if (head->map == NULL) {		\
+		free(head);			\
 		return NULL;			\
 	}					\
-	buf->logsize = logsize;			\
-	buf->len = count;			\
-	buf->hash = ts_hash_oat;		\
-	return (buf);				\
+	head->sentinal = &head->map[count - 1];	\
+	head->logsize = logsize;		\
+	head->len = count;			\
+	head->hash = ts_hash_oat;		\
+	return (head);				\
 }
 
 #define TS_MAP_FREE(__name, __free)		\
@@ -91,13 +105,15 @@ __name##_free(struct __name *head) {		\
 	struct __name##_item *swap = NULL;	\
 	if (head == NULL)			\
 		return;				\
-	TS_ARRAY_FOREACH(item, head->map)	\
-	while (*item != NULL) {			\
-		swap = *item;			\
-		*item = (*item)->next;		\
-		__free(swap);			\
-	}					\
-	__name##_array_free(head->map);		\
+	for (item = head->map;			\
+	     item <= head->sentinal;		\
+	     item++)				\
+		while (*item != NULL) {		\
+			swap = *item;		\
+			*item = (*item)->next;	\
+			__free(swap);		\
+		}				\
+	free(head->map);			\
 	free(head);				\
 	head = NULL;				\
 }
@@ -114,9 +130,11 @@ __name##_resize(struct __name *head,			\
 	count = 1 << logsize;				\
 	if (count < 1)					\
 		return;					\
-	head->map = __name##_array_resize(count);	\
+	head->map = realloc(				\
+	    count * sizeof(struct __name##_vec *));	\
 	if (head->map == NULL)				\
 		return;					\
+	head->sentinal = head->map[count - 1];		\
 	head->logsize = logsize;			\
 	head->len = count;				\
 }
@@ -133,7 +151,7 @@ __name##_lookup(void *ptr,				\
 	if (head->hash == NULL)				\
 		return (NULL);				\
 	key = head->hash(ptr, len);			\
-	item = &head->map->array[key % head->len];	\
+	item = &head->map[key % head->len];		\
 	if (*item == NULL)				\
 		return (item);				\
 	if (key == (*item)->hash)			\
@@ -183,8 +201,7 @@ __name##_rem(void *ptr,					\
 }
 
 #define TS_MAP_PROTOTYPES(__name, __key, __value)			\
-TS_MAP_ITEM(__name, __key, __value);				\
-TS_ARRAY_PROTOTYPES(__name##_array, struct __name##_item *);		\
+TS_MAP_ITEM(__name, __key, __value);					\
 TS_MAP_HEAD(__name);							\
 struct __name * __name##_new(size_t logsize);				\
 void __name##_free(struct __name *head);				\
