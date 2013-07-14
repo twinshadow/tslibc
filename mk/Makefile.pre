@@ -1,0 +1,16 @@
+ifdef DEBUG
+CFLAGS+=	-O0
+endif
+
+CFLAGS+=	-I${TOP}/includes -g -fPIC -Wall -Werror
+prefix=		${TOP}/pkg
+exec_prefix=	${prefix}
+libdir=		${prefix}/lib
+includedir=	${prefix}/include
+
+AR:=		ar
+CC:=		clang
+CHMOD:=		chmod
+INSTALL:=	install
+MKDIR:=		mkdir
+RM:=		rm

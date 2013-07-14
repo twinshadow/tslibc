@@ -27,7 +27,6 @@
 #include "twinshadow/array.h"
 
 TS_ARRAY_PROTOTYPES(ivec, int);
-TS_ARRAY_ALLOC(ivec, int);
 TS_ARRAY_NEW(ivec, int);
 TS_ARRAY_FREE(ivec);
 TS_ARRAY_RESIZE(ivec, int);
@@ -63,7 +62,6 @@ START_TEST(test_vec)
 END_TEST
 
 TS_ARRAY_HEAD(svec, char *);
-TS_ARRAY_ALLOC(svec, char*);
 TS_ARRAY_NEW(svec, char*);
 TS_ARRAY_FREE(svec);
 TS_ARRAY_RESIZE(svec, char*);
