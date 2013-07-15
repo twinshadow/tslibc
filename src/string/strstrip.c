@@ -27,23 +27,37 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "twinshadow/error.h"
 #include "twinshadow/string.h"
 
 void
 ts_strnstrip(char *str, size_t len)
 {
-	char *cptr;
+	char *head, *tail;
 
-	if (str == NULL || str[0] == '\0' || len < 1)
-		return;
+	TS_CHECK_DEBUG(str, "A NULL pointer was passed in.");
+	TS_CHECK_DEBUG(str[0] != '\0', "Empty string.");
+	TS_CHECK_DEBUG(len > 1, "Empty string.");
 
-	len -= 1;
-	for (cptr = str; cptr != &str[len] && isspace(*cptr); cptr++, len--);
-	for (; &cptr[len] != cptr && isspace(cptr[len]); len--);
+	for (head = str;
+	    isspace(*head);
+	    head++, len--);
 
-	len += 1;
-	memmove(str, cptr, len);
+	tail = head + len;
+	if (*tail == '\0')
+		tail--;
+	for (;
+	    tail != head && isspace(*tail);
+	    tail--, len--);
+
+	memmove(str, head, len * sizeof(char));
 	str[len] = '\0';
+
+	goto out;
+
+error:
+out:
+	return;
 }
 
 void

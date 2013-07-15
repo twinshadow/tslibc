@@ -23,10 +23,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "twinshadow/error.h"
 #include "twinshadow/string.h"
 #include "twinshadow/macro.h"
 
@@ -34,41 +34,42 @@ void
 ts_memshift(int offset, void *ptr, size_t len)
 {
 	void *buf;
-	int buflen;
+	size_t buflen;
 
-	if (len < 2)
-		return;
+	TS_CHECK_DEBUG(ptr, "A NULL pointer was passed in.");
+	TS_CHECK_DEBUG(len > 1, "String too small.");
 
+	TS_CHECK_DEBUG(offset != 0, "Offset does nothing");
 	REDUCE_OFFSET(offset, len);
-	/* Eliminate conditions that would result in no changes */
-	if (offset == 0 || len == offset)
-		return;
+	TS_CHECK_DEBUG(offset != 0 || len != offset, "Offset does nothing.");
 
 	buflen = (offset < len - offset) ? offset : len - offset;
 	buf = malloc(buflen);
-	if (buf == NULL)
-	{
-		errno = ENOMEM;
-		return;
-	}
+	TS_CHECK_DEBUG(buf, "Out of memory.");
 
-	if (buflen < offset)
-	{
+	if (buflen < offset) {
 		memmove(buf, ptr, buflen);
 		memmove(ptr, ptr + buflen, len - buflen);
 		memmove(ptr + (len - buflen), buf, buflen);
 	}
-	else
-	{
+	else {
 		memmove(buf, ptr + (len - offset), offset);
 		memmove(ptr + offset, ptr, len - offset);
 		memmove(ptr, buf, offset);
 	}
 	free(buf);
+	goto out;
+
+error:
+out:
+	return;
 }
 
 void
 ts_strshift(int offset, char *str)
 {
+	TS_CHECK_DEBUG(str[0] != '\0', "Empty string.");
 	ts_memshift(offset, str, strnlen(str, SIZE_MAX - 1));
+error:
+	return;
 }

@@ -26,25 +26,35 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "twinshadow/error.h"
 #include "twinshadow/string.h"
 
 char*
 ts_strrtok_r(char *str, const char delim, char **saveptr)
 {
-	char *cptr;
+	char *cptr = NULL;
+
+	TS_CHECK_DEBUG(str, "A NULL pointer was passed in.");
+	TS_CHECK_DEBUG(str[0] != '\0', "Empty string.");
+
 	cptr = strrchr(str, delim);
 
-	if (cptr)
+	if (cptr) {
 		*saveptr = cptr;
-	else
-	{
-		if (*saveptr == NULL)
-			return NULL;
+		*cptr++ = '\0';
+	}
+	else if (*saveptr == NULL) {
+		cptr = NULL;
+	}
+	else {
 		*saveptr = NULL;
-		return str;
+		cptr = str;
 	}
 
-	*cptr++ = '\0';
+	goto out;
+
+error:
+out:
 	return cptr;
 }
 

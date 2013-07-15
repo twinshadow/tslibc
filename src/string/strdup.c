@@ -26,25 +26,35 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "twinshadow/error.h"
 #include "twinshadow/string.h"
 
-char *
-ts_strndup(const char *src, size_t len)
+void *
+ts_memdup(const void *ptr, size_t size)
 {
-	char *buf;
-	if (src == NULL)
-		return (NULL);
+	void *buf = NULL;
+	TS_CHECK_DEBUG(ptr, "A NULL pointer was passed in.");
 
-	buf = calloc(len, sizeof(char));
-	if (buf == NULL)
-		return (NULL);
+	buf = malloc(size);
+	TS_CHECK_DEBUG(buf, "Out of memory.");
 
-	memcpy(buf, src, len);
+	memcpy(buf, ptr, size);
+	goto out;
+
+error:
+out:
 	return (buf);
 }
 
 char *
-ts_strdup(const char *src)
+ts_strndup(const char *ptr, size_t count)
 {
-	return (ts_strndup(src, strnlen(src, SIZE_MAX - 1) + 1));
+	return (ts_memdup(ptr, count * sizeof(char)));
+}
+
+char *
+ts_strdup(const char *ptr)
+{
+	return (ts_memdup(ptr, (strnlen(ptr,
+	    (SIZE_MAX - (2 * sizeof(char)))) + 1 * sizeof(char))));
 }

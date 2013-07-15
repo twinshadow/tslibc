@@ -23,16 +23,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <errno.h>
 #include <stdint.h>
 
+#include "twinshadow/error.h"
 #include "twinshadow/macro.h"
 #include "twinshadow/string.h"
 
 void
 ts_strnrot(int offset, char *str, size_t len)
 {
-	const char *ciphers[] = {
+	const char *ciphers[3] = {
 		"abcdefghijklmnopqrstuvwxyz",
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 		"0123456789",
@@ -43,6 +43,9 @@ ts_strnrot(int offset, char *str, size_t len)
 	char *chr_idx;
 	size_t idx;
 
+	TS_CHECK_DEBUG(str, "A NULL pointer was passed in.");
+	TS_CHECK_DEBUG(str[0] != '\0', "Empty string.");
+	TS_CHECK_DEBUG(offset != 0, "Offset does nothing");
 
 	for (idx = 0; idx < len; idx++)
 	{
@@ -65,6 +68,10 @@ ts_strnrot(int offset, char *str, size_t len)
 			);
 		}
 	}
+	goto out;
+error:
+out:
+	return;
 }
 
 void
