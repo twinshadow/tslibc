@@ -26,6 +26,9 @@
 #include "check/twinshadow.h"
 #include "twinshadow/string.h"
 
+char *buf_strshift;
+char *buf_memshift;
+
 START_TEST(test_strshift_pos1)
 {
 	char *buf = calloc(12, sizeof(char));
@@ -90,24 +93,33 @@ START_TEST(test_memshift_int)
 }
 END_TEST
 
-int
-main(void)
-{
-	int number_failed;
+/*
+ * strshift_should_not_shift_empty_string
+ * strshift_shift_right_given_positive_offset
+ * strshift_shift_left_given_negative_offset
+ * strshift_should_not_shift_when_offset_equals_length
+ * strshift_should_not_shift_when_string_is_empty
+ * strshift_shifts_when_offset_greater_than_string_length
+*/
 
-	Suite *s = suite_create("String");
-	TCase *tc_strshift = tcase_create("strshift");
-	tcase_add_test(tc_strshift, test_strshift_pos1);
-	tcase_add_test(tc_strshift, test_strshift_pos2);
-	tcase_add_test(tc_strshift, test_strshift_neg1);
-	tcase_add_test(tc_strshift, test_strshift_neg2);
-	tcase_add_test(tc_strshift, test_strshift_empty);
-	tcase_add_test(tc_strshift, test_memshift_int);
-	suite_add_tcase(s, tc_strshift);
+void
+setup_strshift(void) {
+	buf_strshift = ts_strdup("0123456789");
+}
 
-	SRunner *sr = srunner_create(s);
-	srunner_run_all(sr, CK_VERBOSE);
-	number_failed = srunner_ntests_failed(sr);
-	srunner_free(sr);
-	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+void
+teardown_strshift(void) {
+	free(buf_strshift);
+}
+
+TCase *
+tcase_strshift(void) {
+	TCase *tc = tcase_create("strshift");
+	tcase_add_test(tc, test_strshift_pos1);
+	tcase_add_test(tc, test_strshift_pos2);
+	tcase_add_test(tc, test_strshift_neg1);
+	tcase_add_test(tc, test_strshift_neg2);
+	tcase_add_test(tc, test_strshift_empty);
+	tcase_add_test(tc, test_memshift_int);
+	return tc;
 }

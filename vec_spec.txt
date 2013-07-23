@@ -1,0 +1,11 @@
+Vector should...
+  - allow insertion or removal from the beginning or end of the array
+  - allow retrieval of values from any point in the array.
+  - process one or more values
+  - resize as values are added or removed
+
+Vector operations that take a pointer and count arguments...
+  - push/pop
+  - unshift/shift
+Vector operations that additionaly take an index arugement...
+  - insert/remove

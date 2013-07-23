@@ -51,5 +51,7 @@ out:
 void
 ts_strrev(char *str)
 {
+	UNLESS (str)
+		return;
 	ts_strnrev(str, strnlen(str, SIZE_MAX - 1) - 1);
 }

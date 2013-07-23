@@ -66,4 +66,7 @@
 		goto error;                     \
 	}
 
+#define TS_CKDB_NULL(__val, ...) \
+	TS_CHECK_DEBUG(__val, "Value should not be NULL")
+
 #endif /* TWINSHADOW_DEBUG_H */

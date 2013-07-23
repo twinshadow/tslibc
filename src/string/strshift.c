@@ -44,6 +44,7 @@ ts_memshift(int offset, void *ptr, size_t len)
 	TS_CHECK_DEBUG(offset != 0 || len != offset, "Offset does nothing.");
 
 	buflen = (offset < len - offset) ? offset : len - offset;
+	TS_CHECK_DEBUG(buflen != 0, "Buflen does nothing");
 	buf = malloc(buflen);
 	TS_CHECK_DEBUG(buf, "Out of memory.");
 

@@ -26,32 +26,28 @@
 #include "check/twinshadow.h"
 #include "twinshadow/string.h"
 
-START_TEST(test_strrot)
+char *buf_strrot;
+
+START_TEST(rotates_alphanumeric_strings)
 {
-	char test[] = "abcxyz ABCXYZ 012789",
-	     xpct[] = "nopklm NOPKLM 345012";
-	char *buf = ts_strdup(test);
-
-	ts_strrot(13, buf);
-	ck_assert_str_eq(buf, xpct);
-
-	free(buf);
+	ts_strrot(13, buf_strrot);
+	ck_assert_str_eq(buf_strrot, "nopklm NOPKLM 345012");
 }
 END_TEST
 
-int
-main(void)
-{
-	int number_failed;
+void
+setup_strrot(void) {
+	buf_strrot = ts_strdup("abcxyz ABCXYZ 012789");
+}
 
-	Suite *s = suite_create("String");
-	TCase *tc_strshift = tcase_create("strrot");
-	tcase_add_test(tc_strshift, test_strrot);
-	suite_add_tcase(s, tc_strshift);
+void
+teardown_strrot(void) {
+	free(buf_strrot);
+}
 
-	SRunner *sr = srunner_create(s);
-	srunner_run_all(sr, CK_VERBOSE);
-	number_failed = srunner_ntests_failed(sr);
-	srunner_free(sr);
-	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+TCase *
+tcase_strrot(void) {
+	TCase *tc = tcase_create("strrot");
+	tcase_add_test(tc, rotates_alphanumeric_strings);
+	return tc;
 }

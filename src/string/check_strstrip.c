@@ -26,33 +26,28 @@
 #include "check/twinshadow.h"
 #include "twinshadow/string.h"
 
-START_TEST(test_strstrip)
+char *buf_strstrip;
+
+START_TEST(strstrip_removes_preceding_and_trailing_whitespace)
 {
-	char buf[] = "   one two three   ";
-	char xpct[] = "one two three";
-	char *test = strdup(buf);
-
-	ts_strstrip(test);
-	ck_assert_str_eq(test, xpct);
-
-	free(test);
+	ts_strstrip(buf_strstrip);
+	ck_assert_str_eq(buf_strstrip, "one two three");
 }
 END_TEST
 
-int
-main(void)
-{
-	int number_failed;
+void
+setup_strstrip(void) {
+	buf_strstrip = ts_strdup("   one two three   ");
+}
 
-	Suite *s = suite_create("check_strstrip");
-	TCase *tc = tcase_create("Main");
-	tcase_add_test(tc, test_strstrip);
-	suite_add_tcase(s, tc);
+void
+teardown_strstrip(void) {
+	free(buf_strstrip);
+}
 
-	SRunner *sr = srunner_create(s);
-	srunner_run_all(sr, CK_VERBOSE);
-	number_failed = srunner_ntests_failed(sr);
-	srunner_free(sr);
-
-	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+TCase *
+tcase_strstrip(void) {
+	TCase *tc = tcase_create("strstrip");
+	tcase_add_test(tc, strstrip_removes_preceding_and_trailing_whitespace);
+	return tc;
 }

@@ -41,7 +41,6 @@
 	}                                                                  \
 } while (0)
 
-
 #define TS_ARRAY_INLINE_FREE(__head) do {    \
 	if ((__head)->array_head) {          \
 		free((__head)->array_head);  \
@@ -124,5 +123,13 @@ TS_ARRAY_HEAD(__name, __type);                           \
 struct __name * __name##_new(size_t count);              \
 void __name##_resize(struct __name *head, size_t count); \
 void __name##_free(struct __name *head);
+
+#define TS_ARRAY_FUNCTIONS(__name, __type) \
+TS_ARRAY_NEW(size_t count);                \
+TS_ARRAY_FREE(struct __name *head);        \
+TS_ARRAY_RESIZE(struct __name *head, size_t count);
+
+/* Generic functions */
+TS_ARRAY_PROTOTYPES(ts_array, void *);
 
 #endif /* TWINSHADOW_ARRAY_H */

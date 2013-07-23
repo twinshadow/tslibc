@@ -1,37 +1,29 @@
 ifndef TOP
 TOP=		../..
 endif
+
 include ${TOP}/mk/Makefile.pre
-
-OBJ_NAME=	$(shell basename "${PWD}")
-
-SRCS=		$(shell find \( -name '*.c' -not -name 'check_*' \) -printf '%P\n')
-OBJS=		$(SRCS:.c=.o)
 
 include ${TOP}/mk/Makefile.check
 
-${OBJ_NAME}.a: ${OBJS}
-	ar -cvq $@ $^
+PKG_NAME=	$(shell basename "${PWD}")
 
-${OBJ_NAME}.so: ${OBJS}
-	${CC} ${CFLAGS} ${LDFLAGS} -shared -o $@ $^
-
-%.o : %.c
-	${CC} ${CFLAGS} -c -o $@ $^
+SRCS=		$(shell find \( -name '*.c' -and -not -name 'check_*' \) -printf '%P\n')
+OBJS=		$(SRCS:.c=.o)
 
 all: ${OBJS}
+
+${PKG_NAME}.check: ${OBJS}
 
 analyze:
 	clang --analyze ${CFLAGS} ${SRCS}
 
-install: ${OBJ_NAME}.a ${OBJ_NAME}.so
+install: ${PKG_NAME}.a ${PKG_NAME}.so
 	${MKDIR} -p ${libdir}
-	${INSTALL} -m0644 ${OBJ_NAME}.a ${libdir}/${OBJ_NAME}.a
-	${INSTALL} -m0755 ${OBJ_NAME}.so ${libdir}/${OBJ_NAME}.so
-
-*.co: ${OBJS}
+	${INSTALL} -m0644 ${PKG_NAME}.a ${libdir}/${PKG_NAME}.a
+	${INSTALL} -m0755 ${PKG_NAME}.so ${libdir}/${PKG_NAME}.so
 
 clean:
-	${RM} -f *.o *.co *.plist ${OBJ_NAME}.a ${OBJ_NAME}.so
+	${RM} -f *.o *.co *.check *.plist ${PKG_NAME}.a ${PKG_NAME}.so
 
-.PHONY: clean install
+.PHONY: analyze clean install

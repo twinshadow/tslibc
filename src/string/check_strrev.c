@@ -26,33 +26,47 @@
 #include "check/twinshadow.h"
 #include "twinshadow/string.h"
 
-START_TEST(test_strrev)
+char *buf_strrev;
+
+START_TEST(strrev_reverses_the_string_order)
 {
-	char test[] = "12345",
-	     xpct[] = "54321";
-	char *buf = ts_strdup(test);
-
-	ts_strrev(buf);
-	ck_assert_str_eq(buf, xpct);
-
-	free(buf);
+	ts_strrev(buf_strrev);
+	ck_assert_str_eq(buf_strrev, "54321");
 }
 END_TEST
 
-int
-main(void)
+START_TEST(strrev_does_not_affect_string_length)
 {
-	int number_failed;
+	int original, modified;
+	original = strlen(buf_strrev);
+	ts_strrev(buf_strrev);
+	modified = strlen(buf_strrev);
+	ck_assert_int_eq(modified, original);
+}
+END_TEST
 
-	Suite *s = suite_create("check_strrev");
-	TCase *tc = tcase_create("Main");
-	tcase_add_test(tc, test_strrev);
-	suite_add_tcase(s, tc);
+START_TEST(strrev_does_not_segfault_on_null)
+{
+	ts_strrev(NULL);
+}
+END_TEST
 
-	SRunner *sr = srunner_create(s);
-	srunner_run_all(sr, CK_VERBOSE);
-	number_failed = srunner_ntests_failed(sr);
-	srunner_free(sr);
+void
+setup_strrev(void) {
+	buf_strrev = ts_strdup("12345");
+}
 
-	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+void
+teardown_strrev(void) {
+	free(buf_strrev);
+}
+
+TCase *
+tcase_strrev(void) {
+	TCase *tc = tcase_create("strrev");
+	tcase_add_checked_fixture(tc, setup_strrev, teardown_strrev);
+	tcase_add_test(tc, strrev_reverses_the_string_order);
+	tcase_add_test(tc, strrev_does_not_segfault_on_null);
+	tcase_add_test(tc, strrev_does_not_affect_string_length);
+	return tc;
 }

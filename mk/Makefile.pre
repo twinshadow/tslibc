@@ -14,3 +14,12 @@ CHMOD:=		chmod
 INSTALL:=	install
 MKDIR:=		mkdir
 RM:=		rm
+
+%.a: ${OBJS}
+	${AR} -cvq $@ $^
+
+%.so: ${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -shared -o $@ $^
+
+%.o : %.c
+	${CC} ${CFLAGS} -c -o $@ $^

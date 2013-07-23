@@ -26,9 +26,10 @@
 #include "check/twinshadow.h"
 #include "twinshadow/string.h"
 
-START_TEST(test_strrtok)
+char *buf_strrtok;
+
+START_TEST(strrtok_returns_string_tokens_in_reverse)
 {
-	char buf[] = "one two three four five";
 	char *xpct[] = {
 		"five",
 		"four",
@@ -36,31 +37,27 @@ START_TEST(test_strrtok)
 		"two",
 		"one"
 	};
-	char *test = strdup(buf);
 
 	int i;
 	char *ptr = NULL;
-	for (i = 0; (ptr = ts_strrtok(test, ' ')); i++)
+	for (i = 0; (ptr = ts_strrtok(buf_strrtok, ' ')); i++)
 		ck_assert_str_eq(ptr, xpct[i]);
-
-	free(test);
 }
 END_TEST
 
-int
-main(void)
-{
-	int number_failed;
+void
+setup_strrtok(void) {
+	buf_strrtok = ts_strdup("one two three four five");
+}
 
-	Suite *s = suite_create("check_strrtok");
-	TCase *tc = tcase_create("Main");
-	tcase_add_test(tc, test_strrtok);
-	suite_add_tcase(s, tc);
+void
+teardown_strrtok(void) {
+	free(buf_strrtok);
+}
 
-	SRunner *sr = srunner_create(s);
-	srunner_run_all(sr, CK_VERBOSE);
-	number_failed = srunner_ntests_failed(sr);
-	srunner_free(sr);
-
-	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+TCase *
+tcase_strrtok(void) {
+	TCase *tc = tcase_create("strrtok");
+	tcase_add_test(tc, strrtok_returns_string_tokens_in_reverse);
+	return tc;
 }
