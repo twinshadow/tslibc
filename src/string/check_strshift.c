@@ -104,7 +104,7 @@ END_TEST
 
 void
 setup_strshift(void) {
-	buf_strshift = ts_strdup("0123456789");
+	buf_strshift = strdup("0123456789");
 }
 
 void
@@ -115,6 +115,7 @@ teardown_strshift(void) {
 TCase *
 tcase_strshift(void) {
 	TCase *tc = tcase_create("strshift");
+	tcase_add_checked_fixture(tc, setup_strshift, teardown_strshift);
 	tcase_add_test(tc, test_strshift_pos1);
 	tcase_add_test(tc, test_strshift_pos2);
 	tcase_add_test(tc, test_strshift_neg1);
@@ -123,3 +124,5 @@ tcase_strshift(void) {
 	tcase_add_test(tc, test_memshift_int);
 	return tc;
 }
+
+CHECK_MAIN_STANDALONE(strshift);

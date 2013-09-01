@@ -24,33 +24,32 @@
 */
 
 #include "check/twinshadow.h"
-#include "twinshadow/string.h"
+#include "twinshadow/vector.h"
 
-char *buf_strstrip;
+struct ts_vector_s *buf_vector = NULL;
 
-START_TEST(strstrip_removes_preceding_and_trailing_whitespace)
+START_TEST(test_vector)
 {
-	ts_strstrip(buf_strstrip);
-	ck_assert_str_eq(buf_strstrip, "one two three");
+	return;
 }
 END_TEST
 
 void
-setup_strstrip(void) {
-	buf_strstrip = strdup("   one two three   ");
+setup_vector(void) {
+	buf_vector = ts_vector_new(5);
 }
 
 void
-teardown_strstrip(void) {
-	free(buf_strstrip);
+teardown_vector(void) {
+	ts_vector_free(buf_vector);
 }
 
 TCase *
-tcase_strstrip(void) {
-	TCase *tc = tcase_create("strstrip");
-	tcase_add_checked_fixture(tc, setup_strstrip, teardown_strstrip);
-	tcase_add_test(tc, strstrip_removes_preceding_and_trailing_whitespace);
+tcase_vector(void) {
+	TCase *tc = tcase_create("vector");
+	tcase_add_checked_fixture(tc, setup_vector, teardown_vector);
+	tcase_add_test(tc, test_vector);
 	return tc;
 }
 
-CHECK_MAIN_STANDALONE(strstrip);
+CHECK_MAIN_STANDALONE(vector);

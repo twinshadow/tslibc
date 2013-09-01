@@ -26,50 +26,11 @@
 #include "check/twinshadow.h"
 #include "twinshadow/array.h"
 
-TS_ARRAY_PROTOTYPES(ivec, int);
-TS_ARRAY_NEW(ivec, int);
-TS_ARRAY_FREE(ivec);
-TS_ARRAY_RESIZE(ivec, int);
+struct ts_array_s *buf_array = NULL;
 
-START_TEST(test_vec)
+START_TEST(test_array)
 {
-	struct ivec *test;
-	int i, *idx;
-
-	test = ivec_new(10);
-	i = 0;
-	TS_ARRAY_FOREACH(idx, test) {
-		*idx = i++;
-	}
-
-	i = 9;
-	TS_ARRAY_RFOREACH(idx, test) {
-		ck_assert_int_eq(*idx, i--);
-	}
-
-	ivec_resize(test, 20);
-	i = 0;
-	TS_ARRAY_FOREACH(idx, test) {
-		*idx = i++;
-	}
-
-	i = 19;
-	TS_ARRAY_RFOREACH(idx, test) {
-		ck_assert_int_eq(*idx, i--);
-	}
-	ivec_free(test);
-}
-END_TEST
-
-TS_ARRAY_HEAD(svec, char *);
-TS_ARRAY_NEW(svec, char*);
-TS_ARRAY_FREE(svec);
-TS_ARRAY_RESIZE(svec, char*);
-
-START_TEST(test_vec2)
-{
-	struct svec *test;
-	char **idx;
+	void **idx;
 	int i;
 	char *expect[] = {
 		"lorem",
@@ -79,39 +40,38 @@ START_TEST(test_vec2)
 		"amet"
 	};
 
-	test = svec_new(5);
 	i = 0;
-	TS_ARRAY_FOREACH(idx, test) {
+	TS_ARRAY_FOREACH(idx, buf_array) {
 		*idx = strdup(expect[i++]);
 	}
 
 	i = 4;
-	TS_ARRAY_RFOREACH(idx, test) {
-		ck_assert_str_eq(*idx, expect[i--]);
+	TS_ARRAY_RFOREACH(idx, buf_array) {
+		ck_assert_str_eq((char*)*idx, expect[i--]);
 	}
 
-	TS_ARRAY_FOREACH(idx, test) {
+	TS_ARRAY_FOREACH(idx, buf_array) {
 		free(*idx);
 	}
-	svec_free(test);
 }
 END_TEST
 
-int
-main(void)
-{
-	int number_failed;
-
-	Suite *s = suite_create("check_vec");
-	TCase *tc = tcase_create("Main");
-	tcase_add_test(tc, test_vec);
-	tcase_add_test(tc, test_vec2);
-	suite_add_tcase(s, tc);
-
-	SRunner *sr = srunner_create(s);
-	srunner_run_all(sr, CK_VERBOSE);
-	number_failed = srunner_ntests_failed(sr);
-	srunner_free(sr);
-
-	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+void
+setup_array(void) {
+	buf_array = ts_array_new(5);
 }
+
+void
+teardown_array(void) {
+	ts_array_free(buf_array);
+}
+
+TCase *
+tcase_array(void) {
+	TCase *tc = tcase_create("array");
+	tcase_add_checked_fixture(tc, setup_array, teardown_array);
+	tcase_add_test(tc, test_array);
+	return tc;
+}
+
+CHECK_MAIN_STANDALONE(array);

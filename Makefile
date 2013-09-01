@@ -1,4 +1,3 @@
-include mk/Makefile.pre
 TOP=		$(realpath ${PWD})
 SUBDIRS=	$(shell find src -maxdepth 1 -mindepth 1 -type d -exec basename \{\} \;)
 
@@ -9,9 +8,6 @@ INSTALL_TARGETS=	$(addprefix install-,${SUBDIRS})
 
 ${SUBDIRS}:
 	cd src/$@ && ${MAKE} all
-
-check-tests:
-	cd tests && ${MAKE} check
 
 ${CHECK_TARGETS}:
 	cd src/$(shell echo $@ | cut -d'-' -f2) && ${MAKE} check
@@ -28,7 +24,7 @@ ${INSTALL_TARGETS}:
 
 all: ${SUBDIRS}
 
-check: check-tests ${CHECK_TARGETS}
+check: ${CHECK_TARGETS}
 
 analyze: ${ANALYZE_TARGETS}
 
@@ -45,10 +41,11 @@ install: ${INSTALL_TARGETS}
 
 docs:
 	cldoc ${CFLAGS} -- \
-		--language=c --report \
+		--language=c \
+		--report \
 		--merge=${TOP}/docs/_cldoc_static \
 		--output=${TOP}/docs/html \
-		$(shell find \( -name '*.c' -or -name '*.h' \) -not -name 'check_*')
+		$(shell find ${TOP}/src \( -name '*.c' -or -name '*.h' \) -and -not -name 'check_*')
 
 everything: clean analyze all docs install check
 

@@ -26,7 +26,6 @@
 #ifndef TWINSHADOW_MAP_H
 #define TWINSHADOW_MAP_H
 
-#include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -35,173 +34,38 @@
 
 typedef ts_hash_int_t ts_map_key_t;
 
-#define LL_WALK(__var, __head) \
-	for(;)
+struct ts_map_item_s {
+	struct ts_map_item_s *next;
+	ts_map_key_t hash;
+	void **key;
+	void **value;
+};
 
-/* Typed structures */
+struct ts_map_s {
+	ts_map_key_t (*hash)(void *ptr, size_t len);
+	struct ts_array_s *array;
+	size_t logsize;
+	size_t count;
+	size_t len;
+};
 
-#define TS_MAP_ITEM(__name, __key, __value) \
-struct __name##_item {                      \
-	struct __name##_item *next;         \
-	ts_map_key_t hash;                  \
-	__key *key;                         \
-	__value *value;                     \
-}
-
-
-#define TS_MAP_HEAD(__name)                          \
-struct __name {                                      \
-	ts_map_key_t (*hash)(void *ptr,              \
-			     size_t len);            \
-	TS_ARRAY_ATTRIBUTES(struct __name##_item *); \
-	size_t logsize;                              \
-	size_t count;                                \
-	size_t len;                                  \
-}
 
 /* iterators */
 
-#define TS_MAP_FOREACH(__var, __map) \
-TS_ARRAY_FOREACH((__var), __map)     \
-	for (;*(__var) != NULL;      \
+#define TS_MAP_FOREACH(__var, __map)    \
+TS_ARRAY_FOREACH((__var), (__map)->array) \
+	for (;*(__var) != NULL;         \
 	     *(__var) = (*__var)->next)
 
-#define TS_MAP_RFOREACH(__var, __head) \
-TS_ARRAY_RFOREACH((__var), __map)      \
-	for (;*(__var) != NULL;        \
+#define TS_MAP_RFOREACH(__var, __map)      \
+TS_ARRAY_RFOREACH((__var), (__map)->array) \
+	for (;*(__var) != NULL;            \
 	     *(__var) = (*__var)->next)
 
-
-/* Memory functions */
-
-#define TS_MAP_NEW(__name)                                                \
-struct __name *                                                           \
-__name##_new(size_t logsize){                                             \
-	struct __name *head;                                              \
-	size_t count;                                                     \
-	count = 1 << logsize;                                             \
-	if (count < 1)                                                    \
-		return NULL;                                              \
-	head = calloc(1, sizeof(struct __name));                          \
-	if (head == NULL)                                                 \
-		return NULL;                                              \
-	TS_ARRAY_INLINE_NEW(head, count, sizeof(struct __name##_item *)); \
-	if (head->array_head == NULL) {                                   \
-		free(head);                                               \
-		return NULL;                                              \
-	}                                                                 \
-	head->logsize = logsize;                                          \
-	head->len = count;                                                \
-	head->hash = ts_hash_oat;                                         \
-	return (head);                                                    \
-}
-
-#define TS_MAP_FREE(__name, __free)            \
-void                                           \
-__name##_free(struct __name *head) {           \
-	struct __name##_item **item;           \
-	struct __name##_item *swap = NULL;     \
-	if (head == NULL)                      \
-		return;                        \
-	TS_ARRAY_FOREACH(item, head)           \
-		while (*item != NULL) {        \
-			swap = *item;          \
-			*item = (*item)->next; \
-			__free(swap);          \
-		}                              \
-	TS_ARRAY_INLINE_FREE(head);            \
-	free(head);                            \
-	head = NULL;                           \
-}
-
-#define TS_MAP_RESIZE(__name, __type)                        \
-void                                                         \
-__name##_resize(struct __name *head,                         \
-    size_t logsize) {                                        \
-	size_t count;                                        \
-	if (head == NULL)                                    \
-		return;                                      \
-	if (head->logsize >= logsize)                        \
-		return;                                      \
-	count = 1 << logsize;                                \
-	if (count < 1)                                       \
-		return;                                      \
-	TS_ARRAY_INLINE_RESIZE(head, count, sizeof(__type)); \
-	if (&head->map == NULL)                              \
-		return;                                      \
-	head->logsize = logsize;                             \
-	head->len = count;                                   \
-}
-
-/* Typed Manipulation Functions */
-
-#define TS_MAP_LOOKUP(__name)                      \
-struct __name##_item **                            \
-__name##_lookup(void *ptr,                         \
-    size_t len,                                    \
-    struct __name *head) {                         \
-	ts_map_key_t key;                          \
-	struct __name##_item **item;               \
-	if (head->hash == NULL)                    \
-		return (NULL);                     \
-	key = head->hash(ptr, len);                \
-	item = &head->array_head[key % head->len]; \
-	if (*item == NULL)                         \
-		return (item);                     \
-	if (key == (*item)->hash)                  \
-		return (item);                     \
-	for (item = &((*item)->next);              \
-	     *item != NULL;                        \
-	     item = &((*item)->next)) {            \
-		if (key == (*item)->hash)          \
-			return (item);             \
-	}                                          \
-	return (item);                             \
-}
-
-#define TS_MAP_ADD(__name)                               \
-struct __name##_item *                                   \
-__name##_add(void *ptr,                                  \
-    size_t len,                                          \
-    struct __name *head) {                               \
-	struct __name##_item **item;                     \
-	item = __name##_lookup(ptr, len, head);          \
-	if (*item != NULL)                               \
-		return (NULL);                           \
-	*item = calloc(1, sizeof(struct __name##_item)); \
-	if (*item == NULL)                               \
-		return (NULL);                           \
-	(*item)->hash = head->hash(ptr, len);            \
-	(*item)->key = ptr;                              \
-	head->count++;                                   \
-	return (*item);                                  \
-}
-
-#define TS_MAP_REM(__name)                      \
-void                                            \
-__name##_rem(void *ptr,                         \
-    size_t len,                                 \
-    struct __name *head) {                      \
-	struct __name##_item **item, *next;     \
-	if (head == NULL)                       \
-		return;                         \
-	item = __name##_lookup(ptr, len, head); \
-	if (*item == NULL)                      \
-		return;                         \
-	next = (*item)->next;                   \
-	free(*item);                            \
-	head->count--;                          \
-	*item = next;                           \
-}
-
-#define TS_MAP_PROTOTYPES(__name, __key, __value)                                    \
-TS_MAP_ITEM(__name, __key, __value);                                                 \
-TS_MAP_HEAD(__name);                                                                 \
-struct __name * __name##_new(size_t logsize);                                        \
-void __name##_free(struct __name *head);                                             \
-void __name##_resize(struct __name *head, size_t logsize);                           \
-struct __name##_item ** __name##_lookup(void *ptr, size_t len, struct __name *head); \
-struct __name##_item * __name##_add(void *ptr, size_t len, struct __name *head);     \
-void __name##_rem(void *ptr, size_t len, struct __name *head);
-
+struct ts_map_s *ts_map_new(size_t logsize);
+void ts_map_free(struct ts_map_s *head);
+void ts_map_resize(struct ts_map_s *head, size_t logsize);
+struct ts_map_item_s **ts_map_lookup(void *ptr, size_t len, struct ts_map_s *head);
+struct ts_map_item_s *ts_map_add(void *ptr, size_t len, struct ts_map_s *head);
+void ts_map_rem(void *ptr, size_t len, struct ts_map_s *head);
 #endif /* TWINSHADOW_HASH_H */

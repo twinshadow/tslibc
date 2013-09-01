@@ -66,6 +66,9 @@
 		goto error;                     \
 	}
 
+#define TS_ERR_NULL(__val, ...) \
+	TS_CHECK_DEBUG(__val, "Value should not be NULL")
+
 #define TS_CKDB_NULL(__val, ...) \
 	TS_CHECK_DEBUG(__val, "Value should not be NULL")
 

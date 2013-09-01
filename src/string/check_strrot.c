@@ -37,7 +37,7 @@ END_TEST
 
 void
 setup_strrot(void) {
-	buf_strrot = ts_strdup("abcxyz ABCXYZ 012789");
+	buf_strrot = strdup("abcxyz ABCXYZ 012789");
 }
 
 void
@@ -48,6 +48,9 @@ teardown_strrot(void) {
 TCase *
 tcase_strrot(void) {
 	TCase *tc = tcase_create("strrot");
+	tcase_add_checked_fixture(tc, setup_strrot, teardown_strrot);
 	tcase_add_test(tc, rotates_alphanumeric_strings);
 	return tc;
 }
+
+CHECK_MAIN_STANDALONE(strrot);

@@ -33,103 +33,27 @@
 #include <string.h>
 
 #include "twinshadow/macro.h"
+#include "twinshadow/error.h"
 
-#define TS_ARRAY_INLINE_NEW(__head, __count, __size) do {                  \
-	if ((__head)->array_head == NULL) {                                \
-		(__head)->array_head = calloc(__count, __size);            \
-		(__head)->array_tail = &(__head)->array_head[__count - 1]; \
-	}                                                                  \
-} while (0)
-
-#define TS_ARRAY_INLINE_FREE(__head) do {    \
-	if ((__head)->array_head) {          \
-		free((__head)->array_head);  \
-		(__head)->array_head = NULL; \
-		(__head)->array_tail = NULL; \
-	}                                    \
-} while (0)
-
-#define TS_ARRAY_INLINE_RESIZE(__head, __count, __size) do {                    \
-	size_t oldcount;                                                        \
-	oldcount = ((__head)->array_tail - (__head)->array_head) / __size;      \
-	(__head)->array_head = realloc((__head)->array_head, __count * __size); \
-	if ((__head)->array_head) {                                             \
-		(__head)->array_tail = &(__head)->array_head[__count - 1];      \
-		if (oldcount < __count) {                                       \
-			memset(&(__head)->array_head[oldcount],                 \
-			    '\0', (__count - oldcount)                          \
-			    * __size);                                          \
-		}                                                               \
-	}                                                                       \
-} while (0)
+struct ts_array_s {
+	void **head;
+	void **tail;
+};
 
 /* iterators */
 #define TS_ARRAY_FOREACH(__var, __head) \
-for (__var = (__head)->array_head;      \
-     __var <= (__head)->array_tail;     \
+for (__var = (__head)->head;      \
+     __var <= (__head)->tail;     \
      (__var)++)
 
 #define TS_ARRAY_RFOREACH(__var, __head) \
-for (__var = (__head)->array_tail;       \
-     __var >= (__head)->array_head;      \
+for (__var = (__head)->tail;       \
+     __var >= (__head)->head;      \
      (__var)--)
 
 
-#define TS_ARRAY_ATTRIBUTES(__type) \
-	__type *array_tail; \
-	__type *array_head;
-
-/* Twinshadow vector meta-typing */
-#define TS_ARRAY_HEAD(__name, __type) \
-struct __name {                       \
-	TS_ARRAY_ATTRIBUTES(__type);  \
-}
-
-/* Memory functions */
-#define TS_ARRAY_NEW(__name, __type)                      \
-struct __name *                                           \
-__name##_new(size_t count) {                              \
-	struct __name *head;                              \
-	head = calloc(1, sizeof(struct __name));          \
-	if (head == NULL) {                               \
-		return NULL;                              \
-	}                                                 \
-	TS_ARRAY_INLINE_NEW(head, count, sizeof(__type)); \
-	if (head->array_head == NULL) {                   \
-		free(head);                               \
-		return NULL;                              \
-	}                                                 \
-	return head;                                      \
-}
-
-#define TS_ARRAY_FREE(__name)        \
-void                                 \
-__name##_free(struct __name *head) { \
-	if (head == NULL)            \
-		return;              \
-	TS_ARRAY_INLINE_FREE(head);  \
-	free(head);                  \
-	head = NULL;                 \
-}
-
-#define TS_ARRAY_RESIZE(__name, __type)                      \
-void                                                         \
-__name##_resize(struct __name *head, size_t count) {         \
-	TS_ARRAY_INLINE_RESIZE(head, count, sizeof(__type)); \
-}
-
-#define TS_ARRAY_PROTOTYPES(__name, __type)              \
-TS_ARRAY_HEAD(__name, __type);                           \
-struct __name * __name##_new(size_t count);              \
-void __name##_resize(struct __name *head, size_t count); \
-void __name##_free(struct __name *head);
-
-#define TS_ARRAY_FUNCTIONS(__name, __type) \
-TS_ARRAY_NEW(size_t count);                \
-TS_ARRAY_FREE(struct __name *head);        \
-TS_ARRAY_RESIZE(struct __name *head, size_t count);
-
-/* Generic functions */
-TS_ARRAY_PROTOTYPES(ts_array, void *);
+struct ts_array_s *ts_array_new(size_t count);
+void ts_array_free(struct ts_array_s *head);
+void ts_array_resize(struct ts_array_s *head, size_t count);
 
 #endif /* TWINSHADOW_ARRAY_H */
