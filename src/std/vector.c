@@ -17,6 +17,8 @@ ts_vector_new(size_t count) {
 	return head;
 
 error:
+	if (head)
+		free(head);
 	return NULL;
 }
 
@@ -63,6 +65,7 @@ ts_vector_operate(struct ts_vector_s *head, int oper, size_t idx) {
 		/* resize the vector */
 	}
 
+	/*
 	switch (oper) {
 		case TS_VECTOR_OPER_POP:
 			ptr = head->cursor;
@@ -98,6 +101,7 @@ ts_vector_operate(struct ts_vector_s *head, int oper, size_t idx) {
 		default:
 			break;
 	}
+	*/
 
 	if (TS_VECTOR_OPER_SET & oper)
 		head->count++;

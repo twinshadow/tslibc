@@ -17,5 +17,9 @@
 *.plist
 *.gch
 
+# coverage
+*.gcda
+*.gcno
+
 # scratch
 *~
