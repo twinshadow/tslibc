@@ -65,16 +65,14 @@ ts_bnode_walk_r(struct ts_bnode_s *node, ts_bwalk_strategy_t strategy, void **qu
 				ts_slist_unshift(row, node->gt);
 			return (node);
 		case TS_BWALK_INORDER:
-			/*
-			 * qlist is for lt nodes
-			 * row is for gt nodes
-			 */
 			if (qlist->count > 0) {
 				row = ts_slist_peek_tail(qlist);
-				node = ts_slist_pop(row);
-				if (node)
-					return(node);
-
+				if (qlist->count == 1) {
+					node = ts_slist_pop(row);
+					if (node)
+						return(node);
+				}
+				node = ts_slist_pop(qlist);
 			}
 			else {
 				row = ts_slist_push(qlist, ts_slist_new());
@@ -82,23 +80,21 @@ ts_bnode_walk_r(struct ts_bnode_s *node, ts_bwalk_strategy_t strategy, void **qu
 
 			if (node == NULL)
 				goto error;
-ts_bwalk_inorder:
-			if (node->lt) {
+
+			while (node->lt) {
 				ts_slist_push(qlist, node);
 				node = node->lt;
-				goto ts_bwalk_inorder;
 			}
 			ts_slist_unshift(row, node);
 			while (qlist->count > 1) {
 				node = ts_slist_pop(qlist);
 				ts_slist_unshift(row, node);
 				if (node->gt) {
-					node = node->gt;
-					goto ts_bwalk_inorder;
+					ts_slist_push(qlist, node->gt);
+					node = ts_slist_pop(row);
+					return (node);
 				}
 			}
-			if (node == NULL)
-				goto error;
 			return (ts_slist_pop(row));
 		case TS_BWALK_POSTORDER:
 			if (qlist->count > 0) {
