@@ -29,8 +29,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "twinshadow/array.h"
+#include "twinshadow/error.h"
 #include "twinshadow/hash.h"
+#include "twinshadow/macro.h"
 
 typedef ts_hash_int_t ts_map_key_t;
 
@@ -43,7 +44,7 @@ struct ts_map_item_s {
 
 struct ts_map_s {
 	ts_map_key_t (*hash)(void *ptr, size_t len);
-	struct ts_array_s *array;
+	struct ts_map_item_s **map;
 	size_t logsize;
 	size_t count;
 	size_t len;
@@ -63,7 +64,7 @@ TS_ARRAY_RFOREACH((__var), (__map)->array) \
 	     *(__var) = (*__var)->next)
 
 struct ts_map_s *ts_map_new(size_t logsize);
-void ts_map_free(struct ts_map_s *head);
+void ts_map_free(struct ts_map_s **head);
 void ts_map_resize(struct ts_map_s *head, size_t logsize);
 struct ts_map_item_s **ts_map_lookup(void *ptr, size_t len, struct ts_map_s *head);
 struct ts_map_item_s *ts_map_add(void *ptr, size_t len, struct ts_map_s *head);

@@ -12,8 +12,8 @@ ts_map_new(size_t logsize) {
 	head = calloc(1, sizeof(struct ts_map_s));
 	TS_ERR_NULL(head);
 
-	head->array = ts_array_new(count);
-	TS_ERR_NULL(head->array);
+	head->map = calloc(count, sizeof(void*));
+	TS_ERR_NULL(head->map);
 
 	head->logsize = logsize;
 	head->len = count;
@@ -27,23 +27,29 @@ error:
 }
 
 void
-ts_map_free(struct ts_map_s *head) {
-	void **item;
+ts_map_free(struct ts_map_s **head) {
+	struct ts_map_item_s **item;
 	struct ts_map_item_s *swap = NULL;
+	size_t idx, count;
 
 	TS_ERR_NULL(head);
+	TS_ERR_NULL(*head);
 
-	TS_ARRAY_FOREACH(item, head->array) {
-		while (*item != NULL) {
-			swap = *item;
-			*item = ((struct ts_map_item_s *)(*item))->next;
-			free(swap);
+	if ((*head)->map) {
+		count = 1 << (*head)->logsize;
+		REPEAT(idx, count) {
+			item = &(*head)->map[idx];
+			while (*item != NULL) {
+				swap = *item;
+				*item = (*item)->next;
+				free(swap);
+			}
 		}
+		free((*head)->map);
 	}
 
-	ts_array_free(head->array);
-	free(head);
-	head = NULL;
+	free(*head);
+	*head = NULL;
 
 error:
 	return;
@@ -52,6 +58,7 @@ error:
 void
 ts_map_resize(struct ts_map_s *head, size_t logsize) {
 	size_t count;
+	struct ts_map_item_s **buf;
 	if (head == NULL)
 		return;
 	if (head->logsize >= logsize)
@@ -59,12 +66,12 @@ ts_map_resize(struct ts_map_s *head, size_t logsize) {
 	count = 1 << logsize;
 	if (count < 1)
 		return;
-	ts_array_resize(head->array, count);
-	TS_ERR_NULL(head->array);
+	buf = realloc(head->map, count);
+	TS_ERR_NULL(buf);
+	head->map = buf;
 	head->logsize = logsize;
 	head->len = count;
 	return;
-
 error:
 	return;
 }
@@ -75,10 +82,10 @@ ts_map_lookup(void *ptr, size_t len, struct ts_map_s *head) {
 	struct ts_map_item_s **item;
 
 	TS_ERR_NULL(head);
-	TS_ERR_NULL(head->array);
+	TS_ERR_NULL(head->map);
 
 	key = head->hash(ptr, len);
-	item = (struct ts_map_item_s**)&head->array->head[key % head->len];
+	item = &head->map[key % head->len];
 	if (*item == NULL)
 		return (item);
 	if (key == (*item)->hash)
