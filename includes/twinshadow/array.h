@@ -34,26 +34,34 @@
 
 #include "twinshadow/macro.h"
 #include "twinshadow/error.h"
+#include "twinshadow/std.h"
 
 struct ts_array_s {
-	void **head;
-	void **tail;
+	void *head;
+	void *tail;
+	size_t size;
 };
 
 /* iterators */
 #define TS_ARRAY_FOREACH(__var, __head) \
-for (__var = (__head)->head;      \
-     __var <= (__head)->tail;     \
-     (__var)++)
+for (__var  = (__head)->head;           \
+     __var <= (__head)->tail;           \
+     __var += (__head)->size)
 
 #define TS_ARRAY_RFOREACH(__var, __head) \
-for (__var = (__head)->tail;       \
-     __var >= (__head)->head;      \
-     (__var)--)
+for (__var  = (__head)->tail;            \
+     __var >= (__head)->head;            \
+     __var -= (__head)->size)
 
+#define TS_ERR_ARRAY_IS_VALID(__array) do { \
+	TS_ERR_NULL(__array);               \
+	TS_ERR_NULL((__array)->head);       \
+	TS_ERR_NULL((__array)->tail);       \
+	TS_ERR_ZERO((__array)->size);       \
+} while (0)
 
-struct ts_array_s *ts_array_new(size_t count);
-void ts_array_free(struct ts_array_s *head);
-void ts_array_resize(struct ts_array_s *head, size_t count);
+struct ts_array_s *ts_array_new(size_t count, size_t size);
+void ts_array_free(struct ts_array_s **head);
+void ts_array_resize(struct ts_array_s *head, size_t count, size_t size);
 
 #endif /* TWINSHADOW_ARRAY_H */

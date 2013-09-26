@@ -41,7 +41,7 @@ setup_vector(void) {
 
 void
 teardown_vector(void) {
-	ts_vector_free(buf_vector);
+	ts_vector_free(&buf_vector);
 }
 
 TCase *

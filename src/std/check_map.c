@@ -123,7 +123,7 @@ setup_map(void) {
 
 void
 teardown_map(void) {
-	ts_map_free(buf_map);
+	ts_map_free(&buf_map);
 }
 
 TCase *

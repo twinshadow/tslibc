@@ -30,7 +30,7 @@ struct ts_array_s *buf_array = NULL;
 
 START_TEST(test_array)
 {
-	void **idx;
+	void *idx;
 	int i;
 	char *expect[] = {
 		"lorem",
@@ -42,28 +42,24 @@ START_TEST(test_array)
 
 	i = 0;
 	TS_ARRAY_FOREACH(idx, buf_array) {
-		*idx = strdup(expect[i++]);
+		memcpy(idx, &expect[i++], sizeof(char*));
 	}
 
 	i = 4;
 	TS_ARRAY_RFOREACH(idx, buf_array) {
-		ck_assert_str_eq((char*)*idx, expect[i--]);
-	}
-
-	TS_ARRAY_FOREACH(idx, buf_array) {
-		free(*idx);
+		ck_assert_str_eq(*((char**)idx), expect[i--]);
 	}
 }
 END_TEST
 
 void
 setup_array(void) {
-	buf_array = ts_array_new(5);
+	buf_array = ts_array_new(5, sizeof(char*));
 }
 
 void
 teardown_array(void) {
-	ts_array_free(buf_array);
+	ts_array_free(&buf_array);
 }
 
 TCase *
