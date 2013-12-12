@@ -89,6 +89,7 @@ checko: ${CHECK_OBJS}
 check-build: ${CHECK_BINS}
 
 check-run: check-build
+ifdef VALGRIND
 	for CHK in ${CHECK_BINS}; do \
 	valgrind                                   \
 	    --suppressions=${TOP}/ts_valgrind.supp \
@@ -96,6 +97,11 @@ check-run: check-build
 	    --quiet                                \
 	    ./$$CHK;\
 	done;
+else
+	for CHK in ${CHECK_BINS}; do \
+	    ./$$CHK;\
+	done;
+endif
 
 check: check-run
 
