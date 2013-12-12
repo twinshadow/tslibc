@@ -24,7 +24,7 @@ struct ts_snode_s *
 ts_snode_operation(struct ts_snode_s **node, struct ts_snode_s *link, ts_snode_op_t operation)
 {
 	TS_ERR_NULL(node);
-	if (operation & TS_SNODE_OP_PUSH + TS_SNODE_OP_UNSHIFT)
+	if (operation & (TS_SNODE_OP_PUSH + TS_SNODE_OP_UNSHIFT))
 		TS_ERR_NULL(link);
 	if (operation & TS_SNODE_OP_PUSH) {
 		link->next = *node;
