@@ -35,6 +35,12 @@ START_TEST(rotates_alphanumeric_strings)
 }
 END_TEST
 
+START_TEST(handles_zero_offset) {
+	ts_strrot(26, buf_strrot);
+	ck_assert_str_eq(buf_strrot, "abcxyz ABCXYZ 678345");
+}
+END_TEST
+
 void
 setup_strrot(void) {
 	buf_strrot = strdup("abcxyz ABCXYZ 012789");
@@ -50,6 +56,7 @@ tcase_strrot(void) {
 	TCase *tc = tcase_create("strrot");
 	tcase_add_checked_fixture(tc, setup_strrot, teardown_strrot);
 	tcase_add_test(tc, rotates_alphanumeric_strings);
+	tcase_add_test(tc, handles_zero_offset);
 	return tc;
 }
 
