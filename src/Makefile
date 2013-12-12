@@ -21,7 +21,7 @@ SRCS=		$(shell find \( -name '*.c' -and -not -name 'check_*' \) -printf '%P\n')
 OBJS=		$(SRCS:.c=.o)
 
 CHECK_SRCS:=	$(wildcard check_*.c)
-CHECK_OBJS:=	$(CHECK_SRCS:.c=.so)
+CHECK_OBJS:=	$(CHECK_SRCS:.c=.co)
 CHECK_BINS:=	$(CHECK_SRCS:.c=)
 CHECK_PKG:=	check_${PKG_NAME}
 
@@ -34,6 +34,11 @@ CHECK_PKG:=	check_${PKG_NAME}
 #
 ifdef DEBUG
 CFLAGS+=	-O0
+endif
+
+ifdef WITH_COVERAGE
+COV_CFLAGS+=	-fprofile-arcs -ftest-coverage
+LDFLAGS+=	-lgcov
 endif
 
 CFLAGS+=	-I${TOP}/includes -g -fPIC -Wall -Werror
@@ -56,13 +61,13 @@ includedir=	${prefix}/include
 	${CC} ${CFLAGS} ${LDFLAGS} -shared -o $@ $^
 
 %.o: %.c
-	${CC} ${CFLAGS} -c -o $@ $^
+	${CC} ${CFLAGS} ${COV_CFLAGS} -c -o $@ $^
 
 ${CHECK_BINS}:
 	CHK_SRC=$(@:=.c); \
 	FUN_OBJ=$(shell echo $(@:=.o) | cut -d'_' -f2); \
 	${MAKE} $$FUN_OBJ; \
-	${CC} ${CFLAGS} -DCHECK_STANDALONE ${LDFLAGS} $(shell pkg-config --libs check) -o $@ $$CHK_SRC $$FUN_OBJ $^
+	${CC} ${CFLAGS} ${COV_CFLAGS} -DCHECK_STANDALONE ${LDFLAGS} $(shell pkg-config --libs check) -o $@ $$CHK_SRC $$FUN_OBJ $^
 
 ${CHECK_OBJS}:
 	CHK_SRC=$(@:.so=.c); \
@@ -103,6 +108,6 @@ install: ${PKG_NAME}.a ${PKG_NAME}.so
 	${INSTALL} -m0755 ${PKG_NAME}.so ${libdir}/${PKG_NAME}.so
 
 clean:
-	${RM} -f *.o *.co *.check *.plist ${PKG_NAME}.a ${PKG_NAME}.so ${CHECK_BINS}
+	${RM} -f *.o *.co *.gcda *.gcno *.gcov *.check *.plist ${PKG_NAME}.a ${PKG_NAME}.so ${CHECK_BINS}
 
 .PHONY: analyze clean install
