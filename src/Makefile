@@ -17,7 +17,7 @@ RM:=		rm
 
 PKG_NAME=	$(shell basename "${PWD}")
 
-SRCS=		$(shell find \( -name '*.c' -and -not -name 'check_*' \) -printf '%P\n')
+SRCS=		$(shell find -maxdepth 1 \( -name '*.c' -and -not -name 'check_*' \) -printf '%P\n')
 OBJS=		$(SRCS:.c=.o)
 
 CHECK_SRCS:=	$(wildcard check_*.c)
@@ -46,6 +46,7 @@ prefix=		${TOP}/pkg
 exec_prefix=	${prefix}
 libdir=		${prefix}/lib
 includedir=	${prefix}/include
+checklibs=	$(shell pkg-config --libs check)
 
 # _____                    _       _
 #|_   _|__ _ __ ___  _ __ | | __ _| |_ ___  ___
@@ -60,20 +61,17 @@ includedir=	${prefix}/include
 %.so: ${OBJS}
 	${CC} ${CFLAGS} ${LDFLAGS} -shared -o $@ $^
 
+%.co : %.c
+	${CC} ${CFLAGS} -c -o $@ $^
+
 %.o: %.c
 	${CC} ${CFLAGS} ${COV_CFLAGS} -c -o $@ $^
 
 ${CHECK_BINS}:
 	CHK_SRC=$(@:=.c); \
-	FUN_OBJ=$(shell echo $(@:=.o) | cut -d'_' -f2); \
+	FUN_OBJ=$(@:check_%=%.c); \
 	${MAKE} $$FUN_OBJ; \
-	${CC} ${CFLAGS} ${COV_CFLAGS} -DCHECK_STANDALONE ${LDFLAGS} $(shell pkg-config --libs check) -o $@ $$CHK_SRC $$FUN_OBJ $^
-
-${CHECK_OBJS}:
-	CHK_SRC=$(@:.so=.c); \
-	FUN_OBJ=$(shell echo $(@:.so=.o) | cut -d'_' -f2); \
-	${MAKE} $$FUN_OBJ; \
-	${CC} ${CFLAGS} ${LDFLAGS} $(shell pkg-config --libs check) -shared -o $@ $$CHK_SRC $$FUN_OBJ
+	${CC} ${CFLAGS} ${COV_CFLAGS} -DCHECK_STANDALONE ${LDFLAGS} ${checklibs} -o $@ $$CHK_SRC $$FUN_OBJ $^
 
 # _____                    _
 #|_   _|_ _ _ __ __ _  ___| |_ ___
@@ -82,7 +80,9 @@ ${CHECK_OBJS}:
 #  |_|\__,_|_|  \__, |\___|\__|___/
 #               |___/
 
-all: ${OBJS}
+build: ${OBJS}
+
+all: build
 
 checko: ${CHECK_OBJS}
 
@@ -90,7 +90,7 @@ check-build: ${CHECK_BINS}
 
 check-run: check-build
 ifdef VALGRIND
-	for CHK in ${CHECK_BINS}; do \
+	@for CHK in ${CHECK_BINS}; do \
 	valgrind                                   \
 	    --suppressions=${TOP}/ts_valgrind.supp \
 	    --leak-check=full                      \
@@ -98,7 +98,7 @@ ifdef VALGRIND
 	    ./$$CHK;\
 	done;
 else
-	for CHK in ${CHECK_BINS}; do \
+	@for CHK in ${CHECK_BINS}; do \
 	    ./$$CHK;\
 	done;
 endif
@@ -106,7 +106,7 @@ endif
 check: check-run
 
 analyze:
-	clang --analyze ${CFLAGS} ${SRCS}
+	@clang --analyze ${CFLAGS} ${SRCS}
 
 install: ${PKG_NAME}.a ${PKG_NAME}.so
 	${MKDIR} -p ${libdir}
