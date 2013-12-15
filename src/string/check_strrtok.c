@@ -47,7 +47,7 @@ END_TEST
 
 void
 setup_strrtok(void) {
-	buf_strrtok = ts_strdup("one two three four five");
+	buf_strrtok = strdup("one two three four five");
 }
 
 void
@@ -58,6 +58,9 @@ teardown_strrtok(void) {
 TCase *
 tcase_strrtok(void) {
 	TCase *tc = tcase_create("strrtok");
+	tcase_add_checked_fixture(tc, setup_strrtok, teardown_strrtok);
 	tcase_add_test(tc, strrtok_returns_string_tokens_in_reverse);
 	return tc;
 }
+
+CHECK_MAIN_STANDALONE(strrtok);

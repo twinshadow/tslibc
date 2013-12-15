@@ -30,4 +30,43 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/* A list of all the test-cases exposed to runner.c */
+TCase *tcase_array(void);
+TCase *tcase_map(void);
+TCase *tcase_slist(void);
+TCase *tcase_btree(void);
+TCase *tcase_isort(void);
+TCase *tcase_strrot(void);
+TCase *tcase_strrev(void);
+TCase *tcase_strrtok(void);
+TCase *tcase_strshift(void);
+TCase *tcase_strstrip(void);
+TCase *tcase_strdup(void);
+
+/*
+ * find "${TOP}/src" -mindepth 1 -maxdepth 1 -type d -printf '%f\n'
+ * find "${TOP}/src" -name 'check_*.c' | cut -d'_' -f2 | xargs -I% -- basename % .c
+ */
+
+/* srunner_cora
+ * 	Does a srunner create or add, more smarter */
+
+#ifdef CHECK_STANDALONE
+#define CHECK_MAIN_STANDALONE(__name)              \
+int                                                \
+main(void) {                                       \
+	int number_failed;                         \
+	Suite *s = suite_create(__FILE__);         \
+	suite_add_tcase(s, tcase_##__name());      \
+	SRunner *sr = srunner_create(s);           \
+	srunner_run_all(sr, CK_VERBOSE);           \
+	number_failed = srunner_ntests_failed(sr); \
+	srunner_free(sr);                          \
+	return ((number_failed == 0) ?             \
+		EXIT_SUCCESS : EXIT_FAILURE);      \
+}
+#else /* CHECK_STANDALONE */
+#define CHECK_MAIN_STANDALONE(__name) void __not_##__name##_main__(void){}
+#endif /* CHECK_STANDALONE */
+
 #endif /* TWINSHADOW_CHECK_H */

@@ -53,7 +53,7 @@ END_TEST
 
 void
 setup_strrev(void) {
-	buf_strrev = ts_strdup("12345");
+	buf_strrev = strdup("12345");
 }
 
 void
@@ -70,3 +70,5 @@ tcase_strrev(void) {
 	tcase_add_test(tc, strrev_does_not_affect_string_length);
 	return tc;
 }
+
+CHECK_MAIN_STANDALONE(strrev);

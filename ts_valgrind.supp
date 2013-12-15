@@ -7,3 +7,11 @@
   fun:timer_create
   fun:srunner_run
 }
+{
+  check-suite-runner-timeout-timer
+  Memcheck:Param
+  timer_create(evp)
+  fun:timer_create
+  fun:*
+  fun:srunner_run
+}

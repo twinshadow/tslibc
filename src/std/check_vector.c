@@ -23,45 +23,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef TWINSHADOW_ARRAY_H
-#define TWINSHADOW_ARRAY_H
-/* A structure wrapper around the existing array type to provide some
- * operational-safety */
+#include "check/twinshadow.h"
+#include "twinshadow/vector.h"
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+struct ts_vector_s *buf_vector = NULL;
 
-#include "twinshadow/macro.h"
-#include "twinshadow/error.h"
-#include "twinshadow/std.h"
+START_TEST(test_vector)
+{
+	return;
+}
+END_TEST
 
-struct ts_array_s {
-	void *head;
-	void *tail;
-	size_t size;
-};
+void
+setup_vector(void) {
+	buf_vector = ts_vector_new(5);
+}
 
-/* iterators */
-#define TS_ARRAY_FOREACH(__var, __head) \
-for (__var  = (__head)->head;           \
-     __var <= (__head)->tail;           \
-     __var += (__head)->size)
+void
+teardown_vector(void) {
+	ts_vector_free(&buf_vector);
+}
 
-#define TS_ARRAY_RFOREACH(__var, __head) \
-for (__var  = (__head)->tail;            \
-     __var >= (__head)->head;            \
-     __var -= (__head)->size)
+TCase *
+tcase_vector(void) {
+	TCase *tc = tcase_create("vector");
+	tcase_add_checked_fixture(tc, setup_vector, teardown_vector);
+	tcase_add_test(tc, test_vector);
+	return tc;
+}
 
-#define TS_ERR_ARRAY_IS_VALID(__array) do { \
-	TS_ERR_NULL(__array);               \
-	TS_ERR_NULL((__array)->head);       \
-	TS_ERR_NULL((__array)->tail);       \
-	TS_ERR_ZERO((__array)->size);       \
-} while (0)
-
-struct ts_array_s *ts_array_new(size_t count, size_t size);
-void ts_array_free(struct ts_array_s **head);
-void ts_array_resize(struct ts_array_s *head, size_t count, size_t size);
-
-#endif /* TWINSHADOW_ARRAY_H */
+CHECK_MAIN_STANDALONE(vector);
