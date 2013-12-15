@@ -10,7 +10,7 @@ $(foreach target,${TARGETS},$(eval $(call WRAPPER_TARGETS,${target})))
 all: ${build_TARGETS}
 analyze: ${analyze_TARGETS}
 check: ${check_TARGETS}
-checko: ${check_TARGETS}
+checko: ${checko_TARGETS}
 clean: ${clean_TARGETS}
 	${RM} -rf pkg
 	${RM} -rf doc
@@ -30,6 +30,9 @@ docs:
 		--output=${TOP}/docs/html \
 		$(shell find ${TOP}/src \( -name '*.c' -or -name '*.h' \) -and -not -name 'check_*')
 
+tests:
+	cd ${TOP}/tests && ${MAKE} clean all
+
 define WRAPPER_TEMPLATE =
 $${${1}_TARGETS}:
 	cd src/$$(@:${1}-%=%) && ${MAKE} ${1}
@@ -38,4 +41,4 @@ $(foreach target,${TARGETS},$(eval $(call WRAPPER_TEMPLATE,${target})))
 
 everything: clean analyze all docs check install
 
-.PHONY: analyze clean docs install
+.PHONY: analyze clean docs install tests
