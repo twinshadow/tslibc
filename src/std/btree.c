@@ -16,6 +16,10 @@ error:
 void
 ts_bnode_free(struct ts_bnode_s *node) {
 	TS_ERR_NULL(node);
+	if (node->lt)
+		ts_bnode_free(node->lt);
+	if (node->gt)
+		ts_bnode_free(node->gt);
 	free(node);
 error:
 	return;
@@ -267,11 +271,7 @@ void
 ts_btree_free(struct ts_btree_s *tree) {
 	TS_ERR_NULL(tree);
 	TS_ERR_NULL(tree->head);
-
-	if (tree->head->lt)
-		ts_bnode_free(tree->head->lt);
-	if (tree->head->gt)
-		ts_bnode_free(tree->head->gt);
+	ts_bnode_free(tree->head);
 error:
 	return;
 }
@@ -296,11 +296,14 @@ error:
 int
 ts_btree_remove(struct ts_btree_s *tree,
 		void *data) {
+	struct ts_bnode_s *node;
 	TS_ERR_NULL(tree);
 	if (tree->head == NULL)
 		goto error;
-	if (ts_bnode_operate(&tree->head, data, tree->compare, TS_BOP_REMOVE)) {
+	node = ts_bnode_operate(&tree->head, data, tree->compare, TS_BOP_REMOVE);
+	if (node != NULL) {
 		tree->count--;
+		ts_bnode_free(node);
 		return (0);
 	}
 error:

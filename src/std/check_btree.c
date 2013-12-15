@@ -70,6 +70,7 @@ START_TEST(test_btree_remove_removes_a_value) {
 	btree_test_ptr = btree_test_str;
 	while (*btree_test_ptr)
 		ts_btree_remove(buf_btree, *btree_test_ptr++);
+	printf("%lu\n", buf_btree->count);
 } END_TEST
 
 START_TEST(test_btree_exists_finds_a_value) {
@@ -117,7 +118,7 @@ START_TEST(test_btree_walk_breadth_first) {
 } END_TEST
 
 void
-setup_btree(void) {
+setup_btree_test(void) {
 	buf_btree = ts_btree_new();
 	buf_btree->compare = btree_strcmp;
 	buf_bnode = NULL;
@@ -125,14 +126,14 @@ setup_btree(void) {
 }
 
 void
-teardown_btree(void) {
+teardown_btree_test(void) {
 	ts_btree_free(buf_btree);
 }
 
 TCase *
 tcase_btree(void) {
 	TCase *tc = tcase_create("btree");
-	tcase_add_checked_fixture(tc, setup_btree, teardown_btree);
+	tcase_add_checked_fixture(tc, setup_btree_test, teardown_btree_test);
 	tcase_add_test(tc, test_btree_walk_breadth_first);
 	tcase_add_test(tc, test_btree_walk_inorder);
 	tcase_add_test(tc, test_btree_walk_postorder);
