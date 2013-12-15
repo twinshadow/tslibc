@@ -36,19 +36,19 @@ START_TEST(strstrip_removes_preceding_and_trailing_whitespace)
 END_TEST
 
 void
-setup_strstrip(void) {
+setup_strstrip_test(void) {
 	buf_strstrip = strdup("   one two three   ");
 }
 
 void
-teardown_strstrip(void) {
+teardown_strstrip_test(void) {
 	free(buf_strstrip);
 }
 
 TCase *
 tcase_strstrip(void) {
 	TCase *tc = tcase_create("strstrip");
-	tcase_add_checked_fixture(tc, setup_strstrip, teardown_strstrip);
+	tcase_add_checked_fixture(tc, setup_strstrip_test, teardown_strstrip_test);
 	tcase_add_test(tc, strstrip_removes_preceding_and_trailing_whitespace);
 	return tc;
 }
