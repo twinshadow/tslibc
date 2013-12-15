@@ -83,21 +83,21 @@ START_TEST(test_slist_reverse) {
 } END_TEST
 
 void
-setup_slist(void) {
+setup_slist_test(void) {
 	buf_slist = ts_slist_new();
 	buf_snode = NULL;
 	snode_string_buf = snode_string_list;
 }
 
 void
-teardown_slist(void) {
+teardown_slist_test(void) {
 	ts_slist_free(buf_slist);
 }
 
 TCase *
 tcase_slist(void) {
 	TCase *tc = tcase_create("slist");
-	tcase_add_checked_fixture(tc, setup_slist, teardown_slist);
+	tcase_add_checked_fixture(tc, setup_slist_test, teardown_slist_test);
 	tcase_add_test(tc, test_slist_does_not_free_when_empty);
 	tcase_add_test(tc, test_slist_unshifts);
 	tcase_add_test(tc, test_slist_pops);
@@ -108,4 +108,4 @@ tcase_slist(void) {
 	return tc;
 }
 
-CHECK_MAIN_STANDALONE(slist);
+HECK_MAIN_STANDALONE(slist);

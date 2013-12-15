@@ -53,19 +53,19 @@ START_TEST(test_array)
 END_TEST
 
 void
-setup_array(void) {
+setup_array_test(void) {
 	buf_array = ts_array_new(5, sizeof(char*));
 }
 
 void
-teardown_array(void) {
+teardown_array_test(void) {
 	ts_array_free(&buf_array);
 }
 
 TCase *
 tcase_array(void) {
 	TCase *tc = tcase_create("array");
-	tcase_add_checked_fixture(tc, setup_array, teardown_array);
+	tcase_add_checked_fixture(tc, setup_array_test, teardown_array_test);
 	tcase_add_test(tc, test_array);
 	return tc;
 }

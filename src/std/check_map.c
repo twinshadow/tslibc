@@ -117,19 +117,19 @@ START_TEST(test_map_rem_collisions)
 END_TEST
 
 void
-setup_map(void) {
+setup_map_test(void) {
 	buf_map = ts_map_new(5);
 }
 
 void
-teardown_map(void) {
+teardown_map_test(void) {
 	ts_map_free(&buf_map);
 }
 
 TCase *
 tcase_map(void) {
-	TCase *tc = tcase_create("Main");
-	tcase_add_checked_fixture(tc, setup_map, teardown_map);
+	TCase *tc = tcase_create("map");
+	tcase_add_checked_fixture(tc, setup_map_test, teardown_map_test);
 	tcase_add_test(tc, test_map_add);
 	tcase_add_test(tc, test_map_rem);
 	tcase_add_test(tc, test_map_add_collisions);
