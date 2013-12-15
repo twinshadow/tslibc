@@ -22,6 +22,8 @@ CHECK_SRCS:=	$(wildcard check_*.c)
 CHECK_OBJS:=	$(CHECK_SRCS:.c=.co)
 CHECK_BINS:=	$(CHECK_SRCS:.c=)
 CHECK_PKG:=	check_${PKG_NAME}
+CHECKSUPP_SRCS:=	$(wildcard checksupp_*.c)
+CHECKSUPP_OBJS:=	$(CHECKSUPP_SRCS:.c=.co)
 
 # _____ _
 #|  ___| | __ _  __ _ ___
@@ -36,7 +38,7 @@ endif
 
 ifdef WITH_COVERAGE
 COV_CFLAGS+=	-fprofile-arcs -ftest-coverage
-LDFLAGS+=	-lgcov
+LDFLAGS+=	-lgcov -fprofile-arcs -ftest-coverage
 endif
 
 CFLAGS+=	-I${TOP}/includes -g -fPIC -Wall -Werror
@@ -65,7 +67,7 @@ checklibs=	$(shell pkg-config --libs check)
 %.o: %.c
 	${CC} ${CFLAGS} ${COV_CFLAGS} -c -o $@ $^
 
-${CHECK_BINS}:
+${CHECK_BINS}: ${CHECKSUPP_OBJS}
 	CHK_SRC=$(@:=.c); \
 	FUN_OBJ=$(@:check_%=%.c); \
 	${MAKE} $$FUN_OBJ; \
