@@ -30,7 +30,7 @@ struct ts_array_s *buf_array = NULL;
 
 START_TEST(test_array)
 {
-	void *idx;
+	char *idx;
 	int i;
 	char *expect[] = {
 		"lorem",
@@ -42,12 +42,14 @@ START_TEST(test_array)
 
 	i = 0;
 	TS_ARRAY_FOREACH(idx, buf_array) {
-		memcpy(idx, &expect[i++], sizeof(char*));
+		strcpy(idx, expect[i]);
+		i++;
 	}
 
 	i = 4;
 	TS_ARRAY_RFOREACH(idx, buf_array) {
-		ck_assert_str_eq(*((char**)idx), expect[i--]);
+		ck_assert_str_eq(idx, expect[i]);
+		i--;
 	}
 }
 END_TEST

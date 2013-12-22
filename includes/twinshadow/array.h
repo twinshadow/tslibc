@@ -37,20 +37,20 @@
 #include "twinshadow/std.h"
 
 struct ts_array_s {
+	size_t size;
 	void *head;
 	void *tail;
-	size_t size;
 };
 
 /* iterators */
 #define TS_ARRAY_FOREACH(__var, __head) \
 for (__var  = (__head)->head;           \
-     __var <= (__head)->tail;           \
+     (void*)__var <= (__head)->tail;           \
      __var += (__head)->size)
 
 #define TS_ARRAY_RFOREACH(__var, __head) \
 for (__var  = (__head)->tail;            \
-     __var >= (__head)->head;            \
+     (void*)__var >= (__head)->head;            \
      __var -= (__head)->size)
 
 #define TS_ERR_ARRAY_IS_VALID(__array) do { \
