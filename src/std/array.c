@@ -1,15 +1,15 @@
 #include "twinshadow/array.h"
 
-ts_return_t
+int
 ts_array_init(struct ts_array_s *head, size_t count, size_t size) {
 	TS_ERR_NULL(head);
 	head->head = calloc(count, size);
 	TS_ERR_NULL(head->head);
-	head->tail = head->head + ((count - 1) * size);
+	head->tail = PTR_OFFSET(head->head, count - 1, size);
 	head->size = size;
-	return TS_RETURN_OK;
+	return (0);
 error:
-	return TS_RETURN_ERROR;
+	return (1);
 }
 
 ts_return_t
@@ -73,27 +73,33 @@ ts_array_resize(struct ts_array_s *head, size_t count, size_t size) {
 
 	if (size != head->size) {
 		map = calloc(count, size);
-		REPEAT(idx, oldcount) {
-			memcpy(map + (idx * size), head->head + (idx * head->size), head->size);
-		}
 	}
 	else {
 		map = realloc(head->head, count * size);
 	}
 
 	TS_ERR_NULL(map);
-	if (head->head && head->head != map)
+
+	if (size != head->size) {
+		REPEAT(idx, oldcount)
+			memcpy(map + (idx * size), PTR_OFFSET(head->head, idx, head->size), head->size);
+		head->size = size;
+	}
+
+	if (head->head != map)
 		free(head->head);
+
 	head->head = map;
 
 	if (count != oldcount) {
-		head->tail = head->head + ((count - 1) * size);
 		if (oldcount < count && size == head->size) {
 			/* clear out unused memory from realloc */
-			memset(head->head + (oldcount * size), '\0',
+			memset(PTR_OFFSET(head->head, oldcount, size), '\0',
 			    count - oldcount);
 		}
 	}
+	head->tail = PTR_OFFSET(head->head, count - 1, size);
+
 error:
 	return;
 }
