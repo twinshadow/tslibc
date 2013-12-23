@@ -3,6 +3,8 @@
 int
 ts_array_init(struct ts_array_s *head, size_t count, size_t size) {
 	TS_ERR_NULL(head);
+	TS_ERR_ZERO(count);
+	TS_ERR_ZERO(size);
 	head->head = calloc(count, size);
 	TS_ERR_NULL(head->head);
 	head->tail = PTR_OFFSET(head->head, count - 1, size);
@@ -60,7 +62,7 @@ ts_array_resize(struct ts_array_s *head, size_t count, size_t size) {
 	size_t idx;
 
 	TS_ERR_ARRAY_IS_VALID(head);
-	oldcount = PTR_COUNT(head->tail, head->head, head->size);
+	oldcount = PTR_COUNT(head->tail, head->head, head->size) + 1;
 
 	if (!count)
 		count = oldcount;
@@ -71,20 +73,13 @@ ts_array_resize(struct ts_array_s *head, size_t count, size_t size) {
 	if (size == head->size && count == oldcount)
 		return;
 
-	if (size != head->size) {
-		map = calloc(count, size);
-	}
-	else {
-		map = realloc(head->head, count * size);
-	}
+	map = realloc(head->head, count * size);
 
 	TS_ERR_NULL(map);
 
 	if (size != head->size) {
 		REPEAT(idx, oldcount)
 			memcpy(map + (idx * size), PTR_OFFSET(head->head, idx, head->size), head->size);
-		head->size = size;
-		free(head->head);
 	}
 	head->head = map;
 

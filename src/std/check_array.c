@@ -112,6 +112,24 @@ START_TEST(test_resize_array_count) {
 }
 END_TEST
 
+START_TEST(test_resize_array_size) {
+	int i;
+	uint8_t *i1;
+	uint64_t *i2;
+	ts_array_resize(buf_array, 0, sizeof(uint8_t));
+	REPEAT(i, 5) {
+		i1 = ts_array_get(buf_array, i);
+		*i1 = -i;
+	}
+	ts_array_resize(buf_array, 0, sizeof(uint64_t));
+	REPEAT(i, 5) {
+		i2 = ts_array_get(buf_array, i);
+		TS_DEBUG("%lli == %i", (long long int)*i2, (uint8_t)-i);
+		ck_assert_int_eq(*i2, (uint8_t)-i);
+	}
+}
+END_TEST
+
 void
 setup_array_test(void) {
 	buf_array = ts_array_new(5, sizeof(char*));
@@ -129,6 +147,7 @@ tcase_array(void) {
 	tcase_add_test(tc, test_array);
 	tcase_add_test(tc, test_array_get_value);
 	tcase_add_test(tc, test_resize_array_count);
+	tcase_add_test(tc, test_resize_array_size);
 	return tc;
 }
 

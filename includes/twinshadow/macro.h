@@ -66,6 +66,7 @@
 	memcpy(__right, __swap, __size); \
 } while (0)
 
+#define REPEAT_FROM(__idx, __comp) for (__idx; __idx < __comp; __idx++)
 #define REPEAT(__idx, __comp) for (__idx = 0; __idx < __comp; __idx++)
 
 #define ITERATE(__idx, __comp) \
