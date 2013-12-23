@@ -27,29 +27,87 @@
 #include "twinshadow/array.h"
 
 struct ts_array_s *buf_array = NULL;
+const char *ts_array_expect[] = {
+	"lorem",
+	"ipsum",
+	"delorum",
+	"sit",
+	"amet",
+	"consectetur",
+	"adipisicing",
+	"elit",
+	"sed",
+	"do",
+};
 
 START_TEST(test_array)
 {
-	char *idx;
+	char **idx;
 	int i;
-	char *expect[] = {
-		"lorem",
-		"ipsum",
-		"delorum",
-		"sit",
-		"amet"
-	};
+
+	TS_DEBUG("%08lx", (long int)buf_array->head);
+	i = 0;
+	TS_ARRAY_FOREACH_2D(idx, buf_array) {
+		*idx = strdup(ts_array_expect[i]);
+		TS_DEBUG("%08lx", (long int)idx);
+		TS_DEBUG("%08lx: %s", (long int)*idx, *idx);
+		i++;
+	}
+	TS_DEBUG("%08lx", (long int)idx);
+	TS_DEBUG("%08lx", (long int)buf_array->tail);
+
+	i = 4;
+	TS_ARRAY_RFOREACH_2D(idx, buf_array) {
+		TS_DEBUG("%s", *idx);
+		ck_assert_str_eq(*idx, ts_array_expect[i]);
+		i--;
+	}
+}
+END_TEST
+
+START_TEST(test_array_get_value) {
+	char **idx;
+	int i;
+
+	REPEAT(i, 5) {
+		idx = ts_array_get(buf_array, i);
+		*idx = strdup(ts_array_expect[i]);
+	}
+
+	REPEAT(i, 5) {
+		idx = ts_array_get(buf_array, i);
+		ck_assert_str_eq(*idx, ts_array_expect[i]);
+	}
+}
+END_TEST
+
+START_TEST(test_resize_array_count) {
+	char **idx;
+	int i;
 
 	i = 0;
-	TS_ARRAY_FOREACH(idx, buf_array) {
-		strcpy(idx, expect[i]);
+	TS_ARRAY_FOREACH_2D(idx, buf_array) {
+		*idx = strdup(ts_array_expect[i]);
+		TS_DEBUG("%s", *idx);
 		i++;
 	}
 
+	ts_array_resize(buf_array, 10, 0);
+
 	i = 4;
-	TS_ARRAY_RFOREACH(idx, buf_array) {
-		ck_assert_str_eq(idx, expect[i]);
-		i--;
+	TS_ARRAY_FOREACH_OFFSET_2D(idx, buf_array, 4) {
+		if (*idx != NULL)
+			TS_DEBUG("%s", *idx);
+		*idx = strdup(ts_array_expect[i]);
+		TS_DEBUG("%s", *idx);
+		i++;
+	}
+
+	i = 0;
+	TS_ARRAY_FOREACH_2D(idx, buf_array) {
+		TS_DEBUG("%s", *idx);
+		ck_assert_str_eq(*idx, ts_array_expect[i]);
+		i++;
 	}
 }
 END_TEST
@@ -69,6 +127,8 @@ tcase_array(void) {
 	TCase *tc = tcase_create("array");
 	tcase_add_checked_fixture(tc, setup_array_test, teardown_array_test);
 	tcase_add_test(tc, test_array);
+	tcase_add_test(tc, test_array_get_value);
+	tcase_add_test(tc, test_resize_array_count);
 	return tc;
 }
 

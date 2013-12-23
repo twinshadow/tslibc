@@ -84,11 +84,8 @@ ts_array_resize(struct ts_array_s *head, size_t count, size_t size) {
 		REPEAT(idx, oldcount)
 			memcpy(map + (idx * size), PTR_OFFSET(head->head, idx, head->size), head->size);
 		head->size = size;
-	}
-
-	if (head->head != map)
 		free(head->head);
-
+	}
 	head->head = map;
 
 	if (count != oldcount) {
@@ -102,4 +99,9 @@ ts_array_resize(struct ts_array_s *head, size_t count, size_t size) {
 
 error:
 	return;
+}
+
+void *
+ts_array_get(struct ts_array_s *head, size_t offset) {
+	return PTR_OFFSET(head->head, offset, head->size);
 }
