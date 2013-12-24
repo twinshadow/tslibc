@@ -26,49 +26,51 @@
 #ifndef TWINSHADOW_MACROS_H
 #define TWINSHADOW_MACROS_H
 
-#define MATCH_SIGNEDNESS(__src, __dst) \
-	(((__src) > 0) \
-	? (((__dst) > 0) ? (__dst) : -(__dst)) \
-	: (((__dst) < 0) ? (__dst) : -(__dst)))
 #define POSITIVE(X) (((X) > 0) ? (X) : -(X))
 #define NEGATIVE(X) (((X) < 0) ? (X) : -(X))
-#define LARGEST_DIFFERENCE(__left, __right) \
-	(((__left) - (__right) > (__right)) \
-	? (__left) - (__right) \
-	: (__right))
-#define SMALLEST_DIFFERENCE(__left, __right) \
-	(((__left) - (__right) < (__right)) \
-	? (__left) - (__right) \
-	: (__right))
 #define PTR_OFFSET(__ptr, __count, __size) ((__ptr) + ((__count) * (__size)))
 #define PTR_COUNT(__ptr1, __ptr2, __size) (((__ptr1) - (__ptr2)) / (__size))
 #define LENGTH(X) (sizeof(X) / sizeof(X[0]))
 #define UNLESS(X) if (!(X))
 
+#define MATCH_SIGNEDNESS(__src, __dst)         \
+	(((__src) > 0)                         \
+	? (((__dst) > 0) ? (__dst) : -(__dst)) \
+	: (((__dst) < 0) ? (__dst) : -(__dst)))
+
+#define LARGEST_DIFFERENCE(__left, __right) \
+	(((__left) - (__right) > (__right)) \
+	? (__left) - (__right)              \
+	: (__right))
+
+#define SMALLEST_DIFFERENCE(__left, __right) \
+	(((__left) - (__right) < (__right))  \
+	? (__left) - (__right)               \
+	: (__right))
+
 #define SWAP(X, Y, Z) do { \
-	(Z) = (X); \
-	(X) = (Y); \
-	(Y) = (Z); \
+	(Z) = (X);         \
+	(X) = (Y);         \
+	(Y) = (Z);         \
 } while (0)
 
 #define ROTATE_RIGHT(__left, __head, __right, __swap) do { \
-	SWAP((__left), (__head), (__swap)); \
-	SWAP((__head), (__right), (__swap)); \
-	SWAP((__right), (__left), (__swap)); \
+	SWAP((__left), (__head), (__swap));                \
+	SWAP((__head), (__right), (__swap));               \
+	SWAP((__right), (__left), (__swap));               \
 } while (0)
 
 #define ROTATE_LEFT(__left, __head, __right, __swap) \
 	ROTATE_RIGHT(__head, __right, __left, __swap);
 
 #define MEMSWAP(__left, __right, __swap, __size) do { \
-	memcpy(__swap, __left, __size); \
-	memcpy(__left, __right, __size); \
-	memcpy(__right, __swap, __size); \
+	memcpy(__swap, __left, __size);               \
+	memcpy(__left, __right, __size);              \
+	memcpy(__right, __swap, __size);              \
 } while (0)
 
 #define REPEAT_FROM(__idx, __comp) for (__idx; __idx < __comp; __idx++)
 #define REPEAT(__idx, __comp) for (__idx = 0; __idx < __comp; __idx++)
-
 #define ITERATE(__idx, __comp) \
 	for (__idx = 0; ; __idx++)
 
