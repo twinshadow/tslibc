@@ -28,27 +28,39 @@
 
 struct ts_vector_s *buf_vector = NULL;
 
-START_TEST(test_vector)
+START_TEST(push_value)
 {
-	return;
+	char *strbuf = "Dingo";
+	ts_vector_unshift(buf_vector, &strbuf);
+}
+END_TEST
+
+START_TEST(push_int)
+{
+	uint8_t buf = 42;
+	ts_vector_free(buf_vector);
+	buf_vector = ts_vector_new(sizeof(uint8_t));
+	ts_vector_unshift(buf_vector, &buf);
+	TS_DEBUG("%d", *(uint8_t*)ts_vector_get(buf_vector, 0));
 }
 END_TEST
 
 void
 setup_vector(void) {
-	buf_vector = ts_vector_new(5);
+	buf_vector = ts_vector_new(sizeof(char*));
 }
 
 void
 teardown_vector(void) {
-	ts_vector_free(&buf_vector);
+	ts_vector_free(buf_vector);
 }
 
 TCase *
 tcase_vector(void) {
 	TCase *tc = tcase_create("vector");
 	tcase_add_checked_fixture(tc, setup_vector, teardown_vector);
-	tcase_add_test(tc, test_vector);
+	tcase_add_test(tc, push_value);
+	tcase_add_test(tc, push_int);
 	return tc;
 }
 

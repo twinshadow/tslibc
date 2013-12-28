@@ -1,16 +1,10 @@
 #include "twinshadow/vector.h"
+#include <stdint.h>
 
 void
-ts_vector_init(struct ts_vector_s *head, ts_vector_policy_t policy) {
-	size_t count = 1;
-	head->array = calloc(count, sizeof(void*));
-	TS_ERR_NULL(head->array);
-
-	head->head = head->array;
-	head->tail = head->array;
-	head->count = 0;
-	head->length = count;
-	head->policy = policy;
+ts_vector_init(struct ts_vector_s *head, size_t size) {
+	TS_ERR_ZERO(size);
+	head->size = size;
 error:
 	return;
 }
@@ -25,18 +19,19 @@ ts_vector_unset(struct ts_vector_s *head) {
 	head->tail = NULL;
 	head->count = 0;
 	head->length = 0;
-	head->policy = 0;
+	head->size = 0;
+	head->policy.flags = 0;
 error:
 	return;
 }
 
 struct ts_vector_s *
-ts_vector_new(ts_vector_policy_t policy) {
+ts_vector_new(size_t size) {
 	struct ts_vector_s *head;
 
 	head = calloc(1, sizeof(struct ts_vector_s));
 	TS_ERR_NULL(head);
-	ts_vector_init(head, policy);
+	ts_vector_init(head, size);
 	return head;
 error:
 	if (head)
@@ -45,143 +40,127 @@ error:
 }
 
 void
-ts_vector_free(struct ts_vector_s **head) {
+ts_vector_free(struct ts_vector_s *head) {
 	TS_ERR_NULL(head);
-	TS_ERR_NULL(*head);
-
-	ts_vector_unset(*head);
-
-	free(*head);
-	*head = NULL;
+	ts_vector_unset(head);
+	free(head);
 error:
 	return;
 }
 
-void
-ts_vector_resize(struct ts_vector_s *head,
-    ts_vector_operation_t operation) {
+int
+ts_vector_resize(struct ts_vector_s *head) {
 	void **buf;
-	size_t count,
-	       head_idx,
-	       tail_idx;
+	size_t head_offset = 0;
+	int ret = 0;
 	TS_VECTOR_IS_VALID(head);
-	if (head->policy & TS_VECTOR_POLICY_SNAKE &&
-	    ~operation & TS_VECTOR_OP_SET)
-		/* This vector never stops growing, it must be free'd */
-		return;
-	head_idx = PTR_COUNT(head->head, head->array, sizeof(void*)) - 1;
-	tail_idx = head_idx + head->count;
-	if (head->policy & TS_VECTOR_POLICY_IMMEDIATE)
-		count = head->length + 1;
-	if (head->policy & TS_VECTOR_POLICY_EAGER)
-		NULL;
-	buf = realloc(head->array, count * sizeof(void*));
+	if (head->head)
+		head_offset = PTR_COUNT(head->head, head->array, head->size);
+	head->length++;
+	buf = realloc(head->array, head->length * head->size);
+	TS_ERR_NULL(buf);
+	if (head->array == NULL) {
+		head->head = buf;
+		head->tail = buf;
+	}
+	head->array = buf;
+	head->head = PTR_OFFSET(head->array, head_offset, head->size);
+	head->tail = PTR_OFFSET(head->head, head->count - 1, head->size);
+	goto out;
 error:
-	return;
+	ret = 1;
+out:
+	return (ret);
 }
 
-void *
+int
 ts_vector_operate(
     struct ts_vector_s *head,
     ts_vector_operation_t operation,
     void *data,
-    int idx) {
-	void **ptr = NULL;
+    ts_vector_idx_t idx) {
+	void *ptr = NULL;
+	int result = 0;
 
 	TS_ERR_NULL(head);
-	if (operation & TS_VECTOR_OP_IDX) {
-		TS_CHECK_DEBUG(idx > head->length, "Index outside of range");
-		if (idx == 0) {
-			operation = ((operation & TS_VECTOR_OP_SET)
-			    ? TS_VECTOR_OP_UNSHIFT
-			    : TS_VECTOR_OP_SHIFT);
-		}
-		else if (idx == (head->count - 1)) {
-			operation = ((operation & TS_VECTOR_OP_SET)
-			    ? TS_VECTOR_OP_PUSH
-			    : TS_VECTOR_OP_POP);
-		}
-	}
-
-	if (operation & TS_VECTOR_OP_SET) {
-		ts_vector_resize(head, operation);
-	}
-	else {
-		TS_CHECK_DEBUG(head->count < 1, "No items to remove");
-	}
+	if (idx == TS_VECTOR_IDX_TAIL && head->count < 2)
+		idx = 0;
+	TS_CHECK(POSITIVE(idx) <= head->count, "Index outside of range");
+	idx = (idx >= 0 ? idx : head->count + idx);
 
 	switch (operation) {
-		case TS_VECTOR_OP_POP:
-			data = *head->tail;
-			head->tail = NULL;
-			head->tail--;
-			break;
-		case TS_VECTOR_OP_PUSH:
-			head->tail++;
-			*head->tail = data;
-			break;
-		case TS_VECTOR_OP_SHIFT:
-			data = *head->head;
-			head->head = NULL;
-			head->head++;
-			break;
-		case TS_VECTOR_OP_UNSHIFT:
-			head->head--;
-			*head->head = data;
-			break;
 		case TS_VECTOR_OP_REMOVE:
-			ptr = head->head + (idx * sizeof(void*));
-			data = *ptr;
-			memmove(ptr, ptr + sizeof(void*), (head->count - idx - 1) * sizeof(void*));
-			*ptr = NULL;
+			TS_CHECK(head->count < 1, "No items to remove");
+			ptr = TS_VECTOR_OFFSET(head, idx);
+			/* copy-out if data-pointer is provided, otherwise it is overwritten */
+			if (data != NULL)
+				memmove(data, ptr, head->size);
+			memmove(ptr, ptr + head->size, (head->count - idx - 1) * head->size);
+			ptr = NULL;
+			head->count--;
+			head->tail -= head->size;
 			break;
+
 		case TS_VECTOR_OP_INSERT:
-			ptr = head->head + (idx * sizeof(void*));
-			memmove(ptr + sizeof(void*), ptr, (head->count - idx - 1) * sizeof(void*));
-			*ptr = data;
+			TS_ERR_NULL(data);
+			if(ts_vector_resize(head))
+				goto error;
+			ptr = TS_VECTOR_OFFSET(head, idx);
+			if (head->count)
+				memmove(ptr + head->size, ptr, (head->count - idx) * head->size);
+			memcpy(ptr, data, head->size);
+			head->count++;
 			break;
 		default:
 			goto error;
 	}
 
-	if (operation & TS_VECTOR_OP_SET) {
-		head->count++;
-	}
-	else {
-		ts_vector_resize(head, operation);
-		head->count--;
-	}
-	return data;
+	goto out;
 error:
-	return NULL;
+	result = -1;
+out:
+	return (result);
 }
 
-void
+// getters
+void *
+ts_vector_get(struct ts_vector_s *head, ts_vector_idx_t idx) {
+	return TS_VECTOR_OFFSET(head, idx);
+}
+
+void *
+ts_vector_find(struct ts_vector_s *head, void *data) {
+	return (NULL);
+}
+
+// modifiers - insert
+int
 ts_vector_push(struct ts_vector_s *head, void *data) {
-	ts_vector_operate(head, TS_VECTOR_OP_PUSH, data, 0);
+	return (ts_vector_operate(head, TS_VECTOR_OP_INSERT, data, TS_VECTOR_IDX_TAIL));
 }
 
-void
+int
 ts_vector_unshift(struct ts_vector_s *head, void *data) {
-	ts_vector_operate(head, TS_VECTOR_OP_UNSHIFT, data, 0);
+	return ts_vector_operate(head, TS_VECTOR_OP_INSERT, data, TS_VECTOR_IDX_HEAD);
 }
 
-void
-ts_vector_insert(struct ts_vector_s *head, void *data, int idx) {
-	ts_vector_operate(head, TS_VECTOR_OP_INSERT, data, idx);
+int
+ts_vector_insert(struct ts_vector_s *head, void *data, ts_vector_idx_t idx) {
+	return ts_vector_operate(head, TS_VECTOR_OP_INSERT, data, idx);
 }
 
-void *
-ts_vector_pop(struct ts_vector_s *head) {
-	return (ts_vector_operate(head, TS_VECTOR_OP_POP, NULL, 0));
+// modifiers - remove
+int
+ts_vector_pop(struct ts_vector_s *head, void *data) {
+	return ts_vector_operate(head, TS_VECTOR_OP_REMOVE, data, TS_VECTOR_IDX_TAIL);
 }
 
-void *
-ts_vector_shift(struct ts_vector_s *head) {
-	return (ts_vector_operate(head, TS_VECTOR_OP_SHIFT, NULL, 0));
+int
+ts_vector_shift(struct ts_vector_s *head, void *data) {
+	return ts_vector_operate(head, TS_VECTOR_OP_REMOVE, data, TS_VECTOR_IDX_HEAD);
 }
 
-void *
-ts_vector_remove(struct ts_vector_s *head, int idx) {
-	return (ts_vector_operate(head, TS_VECTOR_OP_REMOVE, NULL, idx));
+int
+ts_vector_remove(struct ts_vector_s *head, void* data, ts_vector_idx_t idx) {
+	return ts_vector_operate(head, TS_VECTOR_OP_REMOVE, data, idx);
 }

@@ -30,76 +30,60 @@
 
 #include "twinshadow/macro.h"
 #include "twinshadow/error.h"
-#include "twinshadow/std.h"
 
-typedef char ts_vector_operation_t;
-typedef char ts_vector_policy_t;
+typedef int64_t ts_vector_idx_t;
 
-struct ts_vector_s {
-	void **head;
-	void **tail;
-	void **array;
-	size_t count;
-	size_t length;
-	ts_vector_policy_t policy;
-};
+#define TS_VECTOR_IDX_HEAD 0
+#define TS_VECTOR_IDX_TAIL -1
 
-/* Operation enums
- *
- * The first enum defines properties of the operation to be performed
- *
- * The second enum defines which operations the properties apply to
- */
+typedef enum _ts_vector_operation {
+	TS_VECTOR_OP_REMOVE,
+	TS_VECTOR_OP_INSERT,
+} ts_vector_operation_t;
 
-enum {
-	TS_VECTOR_OP_SET = 1<<0, /* high: insert, low: remove */
-	TS_VECTOR_OP_POS = 1<<1, /* high: tail, low: head */
-	TS_VECTOR_OP_IDX = 1<<2 /* high: require an index, low: ignore index value */
-};
-
-enum {
-	TS_VECTOR_OP_SHIFT   = 0,
-	TS_VECTOR_OP_UNSHIFT = TS_VECTOR_OP_SET,
-	TS_VECTOR_OP_POP     = TS_VECTOR_OP_POS,
-	TS_VECTOR_OP_PUSH    = TS_VECTOR_OP_POS + TS_VECTOR_OP_SET,
-	TS_VECTOR_OP_REMOVE  = TS_VECTOR_OP_IDX,
-	TS_VECTOR_OP_INSERT  = TS_VECTOR_OP_IDX + TS_VECTOR_OP_SET,
-};
-
-enum {
+typedef enum _ts_vector_policy {
 	TS_VECTOR_POLICY_IMMEDIATE = 1<<0, /* high: always modify memory on operation */
 	TS_VECTOR_POLICY_EAGER = 1<<1, /* high: allocate extra memory on insert */
 	TS_VECTOR_POLICY_SNAKE = 1<<2, /* high: never deallocate memory */
 	TS_VECTOR_POLICY_RESV0 = 1<<6,
 	TS_VECTOR_POLICY_RESV1 = 1<<7
+} ts_vector_policy_t;
+
+/* TODO: Make this hold the methods and properties for memory-management */
+struct ts_vector_policy_s {
+	ts_vector_policy_t flags;
 };
 
-#define TS_VECTOR_FOREACH(__var, __head) \
-for (__var = __head->array;              \
-     __var <= __head->cursor;            \
-     __var++)
-
-#define TS_VECTOR_RFOREACH(__var, __head) \
-for (__var = __head->cursor;              \
-     __var >= __head->array;              \
-     __var--)
+struct ts_vector_s {
+	void *head;
+	void *tail;
+	void *array;
+	size_t count;
+	size_t length;
+	size_t size;
+	struct ts_vector_policy_s policy;
+};
 
 #define TS_VECTOR_IS_VALID(__head) do { \
 	TS_ERR_NULL(__head);            \
-	TS_ERR_NULL((__head)->array);   \
-	TS_ERR_NULL((__head)->head);    \
-	TS_ERR_NULL((__head)->tail);    \
-	TS_ERR_ZERO((__head)->length);  \
+	TS_ERR_ZERO((__head)->size);    \
 } while (0)
 
-struct ts_vector_s *ts_vector_new(ts_vector_policy_t policy);
-void ts_vector_free(struct ts_vector_s **head);
+#define TS_VECTOR_OFFSET(__head, __idx) ((__head)->head + (__idx * (__head)->size))
 
-void ts_vector_push(struct ts_vector_s *head, void *data);
-void ts_vector_unshift(struct ts_vector_s *head, void *data);
-void ts_vector_insert(struct ts_vector_s *head, void *data, int idx);
-void * ts_vector_pop(struct ts_vector_s *head);
-void * ts_vector_shift(struct ts_vector_s *head);
-void * ts_vector_remove(struct ts_vector_s *head, int idx);
+struct ts_vector_s *ts_vector_new(size_t size);
+void ts_vector_free(struct ts_vector_s *head);
+
+// getters
+void *ts_vector_get(struct ts_vector_s *head, ts_vector_idx_t idx);
+void *ts_vector_find(struct ts_vector_s *head, void *data);
+
+// modifiers
+int ts_vector_push(struct ts_vector_s *head, void *data);
+int ts_vector_unshift(struct ts_vector_s *head, void *data);
+int ts_vector_insert(struct ts_vector_s *head, void *data,  ts_vector_idx_t idx);
+int ts_vector_pop(struct ts_vector_s *head, void *data);
+int ts_vector_shift(struct ts_vector_s *head, void *data);
+int ts_vector_remove(struct ts_vector_s *head, void *data, ts_vector_idx_t idx);
 
 #endif /* TWINSHADOW_VECTOR_H */

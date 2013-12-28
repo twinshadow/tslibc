@@ -29,7 +29,7 @@
 #define POSITIVE(X) (((X) > 0) ? (X) : -(X))
 #define NEGATIVE(X) (((X) < 0) ? (X) : -(X))
 #define PTR_OFFSET(__ptr, __count, __size) ((__ptr) + ((__count) * (__size)))
-#define PTR_COUNT(__ptr1, __ptr2, __size) (((__ptr1) - (__ptr2)) / (__size))
+#define PTR_COUNT(__ptr1, __ptr2, __size) ((__ptr1) > (__ptr2) ? ((__ptr1) - (__ptr2)) / (__size) : 0)
 #define LENGTH(X) (sizeof(X) / sizeof(X[0]))
 #define UNLESS(X) if (!(X))
 
