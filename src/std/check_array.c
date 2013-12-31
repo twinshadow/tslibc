@@ -47,7 +47,7 @@ START_TEST(test_array)
 
 	TS_DEBUG("%08lx", (long int)buf_array->head);
 	i = 0;
-	TS_ARRAY_FOREACH_2D(idx, buf_array) {
+	TS_ARRAY_FOREACH(idx, buf_array) {
 		*idx = strdup(ts_array_expect[i]);
 		TS_DEBUG("%08lx", (long int)idx);
 		TS_DEBUG("%08lx: %s", (long int)*idx, *idx);
@@ -57,7 +57,7 @@ START_TEST(test_array)
 	TS_DEBUG("%08lx", (long int)buf_array->tail);
 
 	i = 4;
-	TS_ARRAY_RFOREACH_2D(idx, buf_array) {
+	TS_ARRAY_RFOREACH(idx, buf_array) {
 		TS_DEBUG("%s", *idx);
 		ck_assert_str_eq(*idx, ts_array_expect[i]);
 		i--;
@@ -86,7 +86,7 @@ START_TEST(test_resize_array_count) {
 	int i;
 
 	i = 0;
-	TS_ARRAY_FOREACH_2D(idx, buf_array) {
+	TS_ARRAY_FOREACH(idx, buf_array) {
 		*idx = strdup(ts_array_expect[i]);
 		TS_DEBUG("%s", *idx);
 		i++;
@@ -95,7 +95,7 @@ START_TEST(test_resize_array_count) {
 	ts_array_resize(buf_array, 10, 0);
 
 	i = 4;
-	TS_ARRAY_FOREACH_OFFSET_2D(idx, buf_array, 4) {
+	TS_ARRAY_FOREACH_OFFSET(idx, buf_array, 4) {
 		if (*idx != NULL)
 			TS_DEBUG("%s", *idx);
 		*idx = strdup(ts_array_expect[i]);
@@ -104,7 +104,7 @@ START_TEST(test_resize_array_count) {
 	}
 
 	i = 0;
-	TS_ARRAY_FOREACH_2D(idx, buf_array) {
+	TS_ARRAY_FOREACH(idx, buf_array) {
 		TS_DEBUG("%s", *idx);
 		ck_assert_str_eq(*idx, ts_array_expect[i]);
 		i++;
@@ -130,6 +130,22 @@ START_TEST(test_resize_array_size) {
 }
 END_TEST
 
+START_TEST(test_convert_mem_to_array) {
+	int *idx;
+	int i;
+	int iter[] = { 12, 24, 36, 48, 60 };
+
+	free(buf_array);
+	buf_array = ts_mem_to_array(iter, 5, sizeof(int));
+	i = 0;
+	TS_ARRAY_FOREACH(idx, buf_array) {
+		TS_DEBUG("%d", *idx);
+		ck_assert_int_eq(*idx, iter[i]);
+		i++;
+	}
+}
+END_TEST
+
 void
 setup_array_test(void) {
 	buf_array = ts_array_new(5, sizeof(char*));
@@ -137,7 +153,7 @@ setup_array_test(void) {
 
 void
 teardown_array_test(void) {
-	ts_array_free(&buf_array);
+	ts_array_free(buf_array);
 }
 
 TCase *
@@ -148,6 +164,7 @@ tcase_array(void) {
 	tcase_add_test(tc, test_array_get_value);
 	tcase_add_test(tc, test_resize_array_count);
 	tcase_add_test(tc, test_resize_array_size);
+	tcase_add_test(tc, test_convert_mem_to_array);
 	return tc;
 }
 

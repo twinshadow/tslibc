@@ -1,11 +1,14 @@
 #include "twinshadow/array.h"
 
 int
-ts_array_init(struct ts_array_s *head, size_t count, size_t size) {
+ts_array_init(struct ts_array_s *head, size_t count, size_t size, void *data) {
 	TS_ERR_NULL(head);
 	TS_ERR_ZERO(count);
 	TS_ERR_ZERO(size);
-	head->head = calloc(count, size);
+	if (data == NULL)
+		head->head = calloc(count, size);
+	else
+		head->head = data;
 	TS_ERR_NULL(head->head);
 	head->tail = PTR_OFFSET(head->head, count - 1, size);
 	head->size = size;
@@ -26,13 +29,21 @@ error:
 }
 
 struct ts_array_s *
-ts_array_new(size_t count, size_t size) {
+ts_array_struct() {
 	struct ts_array_s *head;
 
 	head = calloc(1, sizeof(struct ts_array_s));
 	TS_ERR_NULL(head);
+	return (head);
+error:
+	return (NULL);
+}
 
-	if (ts_array_init(head, count, size))
+struct ts_array_s *
+ts_array_new(size_t count, size_t size) {
+	struct ts_array_s *head;
+	head = ts_array_struct();
+	if (ts_array_init(head, count, size, NULL))
 		goto error;
 
 	return (head);
@@ -43,16 +54,15 @@ error:
 }
 
 void
-ts_array_free(struct ts_array_s **head) {
-	if (*head == NULL)
+ts_array_free(struct ts_array_s *head) {
+	if (head == NULL)
 		return;
 
-	if ((*head)->head)
-		free((*head)->head);
-	ts_array_unset(*head);
+	if (head->head)
+		free(head->head);
+	ts_array_unset(head);
 
-	free(*head);
-	*head = NULL;
+	free(head);
 }
 
 void
@@ -99,4 +109,23 @@ error:
 void *
 ts_array_get(struct ts_array_s *head, size_t offset) {
 	return PTR_OFFSET(head->head, offset, head->size);
+}
+
+struct ts_array_s*
+ts_mem_to_array(void *ptr, size_t count, size_t size) {
+	struct ts_array_s *head;
+	void *buf;
+	head = ts_array_struct();
+	TS_ERR_NULL(head);
+	buf = malloc(count * size);
+	TS_ERR_NULL(buf);
+	TS_ERR_NULL(memcpy(buf, ptr, count * size));
+	TS_ERR_NONZERO(ts_array_init(head, count, size, buf));
+	return (head);
+error:
+	if (head)
+		ts_array_free(head);
+	if (buf)
+		free(buf);
+	return (NULL);
 }

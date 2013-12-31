@@ -53,28 +53,28 @@ for (__var  = PTR_OFFSET((__head)->tail, -__offset, (__head)->size);  \
      (void*)__var >= __limit;                                         \
      __var -= __size)
 
-#define TS_ARRAY_FOREACH_OFFSET_2D(__var, __head, __offset) \
+#define TS_ARRAY_FOREACH_OFFSET(__var, __head, __offset) \
 __TS_ARRAY_FOREACH(__var, __head, __offset, 1, (__head)->tail)
 
-#define TS_ARRAY_RFOREACH_OFFSET_2D(__var, __head, __offset) \
+#define TS_ARRAY_RFOREACH_OFFSET(__var, __head, __offset) \
 __TS_ARRAY_RFOREACH(__var, __head, __offset, 1, (__head)->head)
 
-#define TS_ARRAY_FOREACH_OFFSET(__var, __head, __offset) \
+#define TS_ARRAY_FOREACH_OFFSET_VOID(__var, __head, __offset) \
 __TS_ARRAY_FOREACH(__var, __head, __offset, (__head)->size, (__head)->tail)
 
-#define TS_ARRAY_RFOREACH_OFFSET(__var, __head, __offset) \
+#define TS_ARRAY_RFOREACH_OFFSET_VOID(__var, __head, __offset) \
 __TS_ARRAY_RFOREACH(__var, __head, __offset, (__head)->size, (__head)->head)
 
-#define TS_ARRAY_FOREACH_2D(__var, __head) \
+#define TS_ARRAY_FOREACH(__var, __head) \
 __TS_ARRAY_FOREACH(__var, __head, 0, 1, (__head)->tail)
 
-#define TS_ARRAY_RFOREACH_2D(__var, __head) \
+#define TS_ARRAY_RFOREACH(__var, __head) \
 __TS_ARRAY_RFOREACH(__var, __head, 0, 1, (__head)->head)
 
-#define TS_ARRAY_FOREACH(__var, __head) \
+#define TS_ARRAY_FOREACH_VOID(__var, __head) \
 __TS_ARRAY_FOREACH(__var, __head, 0, (__head)->size, (__head)->tail)
 
-#define TS_ARRAY_RFOREACH(__var, __head) \
+#define TS_ARRAY_RFOREACH_VOID(__var, __head) \
 __TS_ARRAY_RFOREACH(__var, __head, 0, (__head)->size, (__head)->head)
 
 #define TS_ERR_ARRAY_IS_VALID(__array) do { \
@@ -85,8 +85,9 @@ __TS_ARRAY_RFOREACH(__var, __head, 0, (__head)->size, (__head)->head)
 } while (0)
 
 struct ts_array_s *ts_array_new(size_t count, size_t size);
-void ts_array_free(struct ts_array_s **head);
+void ts_array_free(struct ts_array_s *head);
 void ts_array_resize(struct ts_array_s *head, size_t count, size_t size);
 void *ts_array_get(struct ts_array_s *head, size_t offset);
+struct ts_array_s *ts_mem_to_array(void *ptr, size_t count, size_t size);
 
 #endif /* TWINSHADOW_ARRAY_H */
