@@ -72,6 +72,9 @@
 #define TS_ERR_ZERO(__val, ...) \
 	TS_CHECK(__val != 0, "Value should not be zero")
 
+#define TS_ERR_NONZERO(__val, ...) \
+	TS_CHECK(__val == 0, "Value should be zero")
+
 #define TS_DEBUG_PTR(__ptr) TS_DEBUG("%08lx", (long int)__ptr)
 
 #endif /* TWINSHADOW_DEBUG_H */
