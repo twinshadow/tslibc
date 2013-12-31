@@ -29,20 +29,10 @@ error:
 }
 
 struct ts_array_s *
-ts_array_struct() {
-	struct ts_array_s *head;
-
-	head = calloc(1, sizeof(struct ts_array_s));
-	TS_ERR_NULL(head);
-	return (head);
-error:
-	return (NULL);
-}
-
-struct ts_array_s *
 ts_array_new(size_t count, size_t size) {
 	struct ts_array_s *head;
-	head = ts_array_struct();
+	head = calloc(1, sizeof(struct ts_array_s));
+	TS_ERR_NULL(head);
 	if (ts_array_init(head, count, size, NULL))
 		goto error;
 
@@ -115,7 +105,7 @@ struct ts_array_s*
 ts_mem_to_array(void *ptr, size_t count, size_t size) {
 	struct ts_array_s *head;
 	void *buf;
-	head = ts_array_struct();
+	head = calloc(1, sizeof(struct ts_array_s));
 	TS_ERR_NULL(head);
 	buf = malloc(count * size);
 	TS_ERR_NULL(buf);

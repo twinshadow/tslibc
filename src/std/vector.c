@@ -26,18 +26,9 @@ error:
 }
 
 struct ts_vector_s *
-ts_vector_struct() {
-	struct ts_vector_s *head;
-	head = calloc(1, sizeof(struct ts_vector_s));
-	if (head)
-		return (head);
-	return (NULL);
-}
-
-struct ts_vector_s *
 ts_vector_new(size_t size) {
 	struct ts_vector_s *head;
-	head = ts_vector_struct();
+	head = calloc(1, sizeof(struct ts_vector_s));
 	TS_ERR_NULL(head);
 	ts_vector_init(head, size);
 	return head;
@@ -190,15 +181,10 @@ ts_vector_remove(struct ts_vector_s *head, void* data, ts_vector_idx_t idx) {
 struct ts_array_s*
 ts_vector_to_array(struct ts_vector_s *head) {
 	struct ts_array_s *buf;
-	TS_VECTOR_IS_VALID(head);
-	TS_ERR_NULL(head->array);
-	buf = calloc(1, sizeof(struct ts_array_s));
+	TS_VECTOR_IS_POPULATED(head);
+	buf = ts_mem_to_array(head->head, head->count, head->size);
 	TS_ERR_NULL(buf);
-	buf->size = head->size;
-	buf->head = malloc(head->count * head->size);
 	TS_ERR_NULL(buf->head);
-	buf->tail = PTR_OFFSET(buf->head, head->count, buf->size);
-	memcpy(buf->head, head->head, head->count * buf->size);
 	return (buf);
 error:
 	if (buf != NULL)

@@ -92,6 +92,29 @@ START_TEST(unshift_pop_array) {
 }
 END_TEST
 
+START_TEST(test_vector_to_array) {
+	int idx;
+	uint8_t *up1, *up2;
+	struct ts_array_s *arr;
+	ts_vector_free(buf_vector);
+	buf_vector = ts_vector_new(sizeof(uint8_t));
+	REPEAT(idx, 12) {
+		ck_assert(ts_vector_push(buf_vector, &numbuf[idx]) == 0);
+	}
+	arr = ts_vector_to_array(buf_vector);
+	REPEAT(idx, 12) {
+		up1 = ts_array_get(arr, idx);
+		up2 = ts_vector_get(buf_vector, idx);
+		ck_assert_int_eq(*up1, *up2);
+	}
+	ts_array_free(arr);
+}
+END_TEST
+
+START_TEST(test_array_to_vector) {
+}
+END_TEST
+
 void
 setup_vector(void) {
 	buf_vector = ts_vector_new(sizeof(char*));
@@ -110,6 +133,8 @@ tcase_vector(void) {
 	tcase_add_test(tc, push_int);
 	tcase_add_test(tc, push_shift_array);
 	tcase_add_test(tc, unshift_pop_array);
+	tcase_add_test(tc, test_vector_to_array);
+	tcase_add_test(tc, test_array_to_vector);
 	return tc;
 }
 

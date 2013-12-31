@@ -77,9 +77,9 @@ struct ts_vector_s {
 	TS_ERR_NULL((__head)->array);                  \
 	TS_ERR_ZERO((__head)->length);                 \
 	TS_ERR_ZERO((__head)->count);                  \
-	TS_CHECK((__head)->count <= (__head)->length); \
-	TS_CHECK((__head)->array <= (__head)->head);   \
-	TS_CHECK((__head)->head <= (__head)->tail);    \
+	TS_CHECK((__head)->count <= (__head)->length, "Count is greater than length"); \
+	TS_CHECK((__head)->array <= (__head)->head, "Head pointer is greater than array pointer"); \
+	TS_CHECK((__head)->head <= (__head)->tail, "Tail pointer is greater than Head pointer"); \
 } while (0)
 
 #define TS_VECTOR_OFFSET(__head, __idx) (                \
