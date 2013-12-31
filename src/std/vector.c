@@ -54,18 +54,14 @@ ts_vector_resize(struct ts_vector_s *head) {
 	size_t head_offset = 0;
 	int ret = 0;
 	TS_VECTOR_IS_VALID(head);
-	if (head->head)
+	if (head->head && head->array != head->array)
 		head_offset = PTR_COUNT(head->head, head->array, head->size);
 	head->length++;
 	buf = realloc(head->array, head->length * head->size);
 	TS_ERR_NULL(buf);
-	if (head->array == NULL) {
-		head->head = buf;
-		head->tail = buf;
-	}
 	head->array = buf;
-	head->head = PTR_OFFSET(head->array, head_offset, head->size);
-	head->tail = PTR_OFFSET(head->head, head->count - 1, head->size);
+	head->head = (head_offset) ? PTR_OFFSET(head->array, head_offset, head->size) : buf;
+	head->tail = PTR_OFFSET(head->head, head->count > 1 ? head->count - 1 : 0, head->size);
 	goto out;
 error:
 	ret = 1;
@@ -81,21 +77,18 @@ ts_vector_operate(
     ts_vector_idx_t idx) {
 	void *ptr = NULL;
 	int result = 0;
-
 	TS_ERR_NULL(head);
-	if (idx == TS_VECTOR_IDX_TAIL && head->count < 2)
-		idx = 0;
-	TS_CHECK(POSITIVE(idx) <= head->count, "Index outside of range");
-	idx = (idx >= 0 ? idx : head->count + idx);
 
 	switch (operation) {
 		case TS_VECTOR_OP_REMOVE:
-			TS_CHECK(head->count < 1, "No items to remove");
+			TS_CHECK(head->count > 0, "No items to remove");
+			TS_VECTOR_CHECK_IDX(head, idx);
 			ptr = TS_VECTOR_OFFSET(head, idx);
 			/* copy-out if data-pointer is provided, otherwise it is overwritten */
 			if (data != NULL)
-				memmove(data, ptr, head->size);
-			memmove(ptr, ptr + head->size, (head->count - idx - 1) * head->size);
+				memcpy(data, ptr, head->size);
+			if (idx != TS_VECTOR_IDX_TAIL)
+				memmove(ptr, ptr + head->size, (head->count - idx - 1) * head->size);
 			ptr = NULL;
 			head->count--;
 			head->tail -= head->size;
@@ -103,11 +96,17 @@ ts_vector_operate(
 
 		case TS_VECTOR_OP_INSERT:
 			TS_ERR_NULL(data);
+			TS_VECTOR_CHECK_IDX(head, idx);
 			if(ts_vector_resize(head))
 				goto error;
 			ptr = TS_VECTOR_OFFSET(head, idx);
-			if (head->count)
-				memmove(ptr + head->size, ptr, (head->count - idx) * head->size);
+			if (head->count) {
+				head->tail += head->size;
+				if (idx != TS_VECTOR_IDX_TAIL)
+					memmove(ptr + head->size, ptr, (head->count - idx) * head->size);
+				if (idx == TS_VECTOR_IDX_TAIL)
+					ptr = head->tail;
+			}
 			memcpy(ptr, data, head->size);
 			head->count++;
 			break;
@@ -163,4 +162,43 @@ ts_vector_shift(struct ts_vector_s *head, void *data) {
 int
 ts_vector_remove(struct ts_vector_s *head, void* data, ts_vector_idx_t idx) {
 	return ts_vector_operate(head, TS_VECTOR_OP_REMOVE, data, idx);
+}
+
+// conversion
+struct ts_array_s*
+ts_vector_to_array(struct ts_vector_s *head) {
+	struct ts_array_s *buf;
+	TS_VECTOR_IS_VALID(head);
+	TS_ERR_NULL(head->array);
+	buf = calloc(1, sizeof(struct ts_array_s));
+	TS_ERR_NULL(buf);
+	buf->size = head->size;
+	buf->head = malloc(head->count * head->size);
+	TS_ERR_NULL(buf->head);
+	buf->tail = PTR_OFFSET(buf->head, head->count, buf->size);
+	memcpy(buf->head, head->head, head->count * buf->size);
+	return (buf);
+error:
+	if (buf != NULL)
+		free(buf);
+	return (NULL);
+}
+
+struct ts_vector_s*
+ts_array_to_vector(struct ts_array_s *head) {
+	struct ts_vector_s *buf;
+	TS_ERR_ARRAY_IS_VALID(head);
+	buf = calloc(1, sizeof(struct ts_vector_s));
+	TS_ERR_NULL(buf);
+	buf->size = head->size;
+	buf->length = buf->count = PTR_COUNT(head->tail, head->head, head->size);
+	buf->head = buf->array = malloc(buf->count * buf->size);
+	TS_ERR_NULL(buf->array);
+	memcpy(buf->array, head->head, buf->count * buf->size);
+	buf->tail = PTR_OFFSET(buf->array, buf->count - 1, buf->size);
+	return (buf);
+error:
+	if (buf != NULL)
+		free(buf);
+	return (NULL);
 }

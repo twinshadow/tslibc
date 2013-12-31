@@ -73,6 +73,7 @@
 #define REPEAT(__idx, __comp) for (__idx = 0; __idx < __comp; __idx++)
 #define ITERATE(__idx, __comp) \
 	for (__idx = 0; ; __idx++)
+#define COUNTDOWN(__idx, __comp) for (__idx; __idx > 0; __idx--)
 
 /* This takes ridiculous offset amounts and reduces them to the actual amount
  * needed to rotate the appropriate amount. It then converts negative values

@@ -28,6 +28,7 @@
 
 #include <stdlib.h>
 
+#include "twinshadow/array.h"
 #include "twinshadow/macro.h"
 #include "twinshadow/error.h"
 
@@ -69,7 +70,17 @@ struct ts_vector_s {
 	TS_ERR_ZERO((__head)->size);    \
 } while (0)
 
-#define TS_VECTOR_OFFSET(__head, __idx) ((__head)->head + (__idx * (__head)->size))
+#define TS_VECTOR_OFFSET(__head, __idx) (                \
+	(__idx) == TS_VECTOR_IDX_TAIL ? (__head)->tail : \
+	(__idx) == TS_VECTOR_IDX_HEAD ? (__head)->head : \
+	(__idx) < (__head)->count ? PTR_OFFSET((__head)->head, (__idx), (__head)->size) : \
+	NULL)
+
+#define TS_VECTOR_CHECK_IDX(__head, __idx)            \
+	TS_CHECK((__idx) == TS_VECTOR_IDX_HEAD        \
+		|| (__idx) == TS_VECTOR_IDX_TAIL      \
+		|| POSITIVE(__idx) < (__head)->count, \
+		"Index outside of vector items.")
 
 struct ts_vector_s *ts_vector_new(size_t size);
 void ts_vector_free(struct ts_vector_s *head);

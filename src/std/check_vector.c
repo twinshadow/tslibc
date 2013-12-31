@@ -27,21 +27,68 @@
 #include "twinshadow/vector.h"
 
 struct ts_vector_s *buf_vector = NULL;
+uint8_t numbuf[] = { 42, 36, 18, 64, 101, 88, 19, 21, 76, 48, 88, 24 };
 
 START_TEST(push_value)
 {
 	char *strbuf = "Dingo";
-	ts_vector_unshift(buf_vector, &strbuf);
+	ck_assert(ts_vector_unshift(buf_vector, &strbuf) == 0);
 }
 END_TEST
 
 START_TEST(push_int)
 {
-	uint8_t buf = 42;
+	uint8_t buf = 42, foo = 48;
 	ts_vector_free(buf_vector);
 	buf_vector = ts_vector_new(sizeof(uint8_t));
-	ts_vector_unshift(buf_vector, &buf);
+	ck_assert(ts_vector_push(buf_vector, &buf) == 0);
+	ck_assert(ts_vector_push(buf_vector, &foo) == 0);
 	TS_DEBUG("%d", *(uint8_t*)ts_vector_get(buf_vector, 0));
+	TS_DEBUG("%d", *(uint8_t*)ts_vector_get(buf_vector, 1));
+}
+END_TEST
+
+START_TEST(push_shift_array) {
+	uint8_t *iptr;
+	uint8_t *iidx;
+	int idx;
+	iptr = calloc(1, sizeof(uint8_t));
+	ts_vector_free(buf_vector);
+	buf_vector = ts_vector_new(sizeof(uint8_t));
+	REPEAT(idx, 12) {
+		ck_assert(ts_vector_push(buf_vector, &numbuf[idx]) == 0);
+		iidx = buf_vector->tail;
+		ck_assert_int_eq(*iidx, numbuf[idx]);
+		iidx = buf_vector->head;
+		ck_assert_int_eq(*iidx, numbuf[0]);
+	}
+	REPEAT(idx, 12) {
+		ck_assert(ts_vector_shift(buf_vector, iptr) == 0);
+		ck_assert_int_eq(*iptr, numbuf[idx]);
+	}
+	free(iptr);
+}
+END_TEST
+
+START_TEST(unshift_pop_array) {
+	uint8_t *iptr;
+	uint8_t *iidx;
+	int idx;
+	iptr = calloc(1, sizeof(uint8_t));
+	ts_vector_free(buf_vector);
+	buf_vector = ts_vector_new(sizeof(uint8_t));
+	REPEAT(idx, 12) {
+		ck_assert(ts_vector_unshift(buf_vector, &numbuf[idx]) == 0);
+		iidx = buf_vector->head;
+		ck_assert_int_eq(*iidx, numbuf[idx]);
+		iidx = buf_vector->tail;
+		ck_assert_int_eq(*iidx, numbuf[0]);
+	}
+	REPEAT(idx, 12) {
+		ck_assert(ts_vector_pop(buf_vector, iptr) == 0);
+		ck_assert_int_eq(*iptr, numbuf[idx]);
+	}
+	free(iptr);
 }
 END_TEST
 
@@ -61,6 +108,8 @@ tcase_vector(void) {
 	tcase_add_checked_fixture(tc, setup_vector, teardown_vector);
 	tcase_add_test(tc, push_value);
 	tcase_add_test(tc, push_int);
+	tcase_add_test(tc, push_shift_array);
+	tcase_add_test(tc, unshift_pop_array);
 	return tc;
 }
 
