@@ -26,10 +26,18 @@ error:
 }
 
 struct ts_vector_s *
+ts_vector_struct() {
+	struct ts_vector_s *head;
+	head = calloc(1, sizeof(struct ts_vector_s));
+	if (head)
+		return (head);
+	return (NULL);
+}
+
+struct ts_vector_s *
 ts_vector_new(size_t size) {
 	struct ts_vector_s *head;
-
-	head = calloc(1, sizeof(struct ts_vector_s));
+	head = ts_vector_struct();
 	TS_ERR_NULL(head);
 	ts_vector_init(head, size);
 	return head;
@@ -50,23 +58,35 @@ error:
 
 int
 ts_vector_resize(struct ts_vector_s *head) {
-	void **buf;
+	void *buf;
 	size_t head_offset = 0;
-	int ret = 0;
-	TS_VECTOR_IS_VALID(head);
 	if (head->head && head->array != head->array)
 		head_offset = PTR_COUNT(head->head, head->array, head->size);
-	head->length++;
 	buf = realloc(head->array, head->length * head->size);
 	TS_ERR_NULL(buf);
 	head->array = buf;
 	head->head = (head_offset) ? PTR_OFFSET(head->array, head_offset, head->size) : buf;
 	head->tail = PTR_OFFSET(head->head, head->count > 1 ? head->count - 1 : 0, head->size);
-	goto out;
+	return (0);
 error:
-	ret = 1;
-out:
-	return (ret);
+	return (-1);
+}
+
+int
+ts_vector_grow(struct ts_vector_s *head, size_t count) {
+	TS_VECTOR_IS_VALID(head);
+	head->length++;
+	return (ts_vector_resize(head));
+error:
+	return (-1);
+}
+
+int
+ts_vector_shrink(struct ts_vector_s *head, size_t count) {
+	TS_VECTOR_IS_VALID(head);
+	return (0);
+error:
+	return (-1);
 }
 
 int
@@ -83,6 +103,8 @@ ts_vector_operate(
 		case TS_VECTOR_OP_REMOVE:
 			TS_CHECK(head->count > 0, "No items to remove");
 			TS_VECTOR_CHECK_IDX(head, idx);
+			if(ts_vector_shrink(head, 1))
+				goto error;
 			ptr = TS_VECTOR_OFFSET(head, idx);
 			/* copy-out if data-pointer is provided, otherwise it is overwritten */
 			if (data != NULL)
@@ -97,7 +119,7 @@ ts_vector_operate(
 		case TS_VECTOR_OP_INSERT:
 			TS_ERR_NULL(data);
 			TS_VECTOR_CHECK_IDX(head, idx);
-			if(ts_vector_resize(head))
+			if(ts_vector_grow(head, 1))
 				goto error;
 			ptr = TS_VECTOR_OFFSET(head, idx);
 			if (head->count) {

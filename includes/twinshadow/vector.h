@@ -70,6 +70,18 @@ struct ts_vector_s {
 	TS_ERR_ZERO((__head)->size);    \
 } while (0)
 
+#define TS_VECTOR_IS_POPULATED(__head) do {            \
+	TS_VECTOR_IS_VALID(__head);                    \
+	TS_ERR_NULL((__head)->head);                   \
+	TS_ERR_NULL((__head)->tail);                   \
+	TS_ERR_NULL((__head)->array);                  \
+	TS_ERR_ZERO((__head)->length);                 \
+	TS_ERR_ZERO((__head)->count);                  \
+	TS_CHECK((__head)->count <= (__head)->length); \
+	TS_CHECK((__head)->array <= (__head)->head);   \
+	TS_CHECK((__head)->head <= (__head)->tail);    \
+} while (0)
+
 #define TS_VECTOR_OFFSET(__head, __idx) (                \
 	(__idx) == TS_VECTOR_IDX_TAIL ? (__head)->tail : \
 	(__idx) == TS_VECTOR_IDX_HEAD ? (__head)->head : \
@@ -96,5 +108,7 @@ int ts_vector_insert(struct ts_vector_s *head, void *data,  ts_vector_idx_t idx)
 int ts_vector_pop(struct ts_vector_s *head, void *data);
 int ts_vector_shift(struct ts_vector_s *head, void *data);
 int ts_vector_remove(struct ts_vector_s *head, void *data, ts_vector_idx_t idx);
+struct ts_array_s *ts_vector_to_array(struct ts_vector_s *head);
+struct ts_vector_s *ts_array_to_vector(struct ts_array_s *head);
 
 #endif /* TWINSHADOW_VECTOR_H */
