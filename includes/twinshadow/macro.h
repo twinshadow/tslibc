@@ -44,6 +44,8 @@
 #define PTR_COUNT(__ptr1, __ptr2, __size) (((__ptr1) - (__ptr2)) / (__size))
 #define LENGTH(X) (sizeof(X) / sizeof(X[0]))
 #define UNLESS(X) if (!(X))
+#define STREQ(X, Y) (!strcmp(X, Y))
+#define MEMEQ(X, Y, Z) (!memcmp(X, Y, Z))
 
 #define SWAP(X, Y, Z) do { \
 	(Z) = (X); \
@@ -82,5 +84,20 @@
 	if ((__offset) < 0)                                      \
 		(__offset) = (__len) - -(__offset);              \
 }
+
+/* Turn __str into a 2D array of words, pointed to by __ptr, using strtok or ts_strrtok */
+#define __STRTOK(__str, __tok, __ptr, __func) do { \
+	*(__ptr) = __func(__str, __tok);           \
+	TS_DEBUG("%s", *(__ptr));                  \
+	(__ptr)++;                                 \
+	do {                                       \
+		*(__ptr) = __func(NULL, __tok);     \
+		TS_DEBUG("%s", *(__ptr));          \
+	} while (*(__ptr) != NULL && (__ptr)++);   \
+	(ptr--);                                   \
+} while (0)
+
+#define STRTOK(__str, __tok, __ptr) __STRTOK(__str, __tok, __ptr, strtok)
+#define STRRTOK(__str, __tok, __ptr) __STRTOK(__str, __tok, __ptr, ts_strrtok)
 
 #endif /* TWINSHADOW_MACROS_H */

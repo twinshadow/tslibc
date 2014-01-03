@@ -1,4 +1,4 @@
-/* Copyright (c) 2013, Anthony Cornehl
+/* Copyright (c) 2013, 2014, Anthony Cornehl
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,45 +22,78 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include <twinshadow/string.h>
 
-#include <stdint.h>
-#include <stdio.h>
+void
+ts_strrstrip(char *str, const char *delim) {
+	char *cptr;
+	const char *dptr, *sentinal;
 
-#include "twinshadow/error.h"
-#include "twinshadow/string.h"
-
-char*
-ts_strrtok_r(char *str, const char delim, char **saveptr)
-{
-	char *cptr = NULL;
-
-	TS_CHECK_DEBUG(str, "A NULL pointer was passed in.");
-	TS_CHECK_DEBUG(str[0] != '\0', "Empty string.");
-
-	cptr = strrchr(str, delim);
-
-	if (cptr) {
-		*saveptr = cptr;
-		*cptr++ = '\0';
+	sentinal  = PTR_OFFSET(delim, strlen(delim), sizeof(char));
+	cptr = PTR_OFFSET(str, strlen(str) - 1, sizeof(char));
+	for (; cptr >= str; cptr--) {
+		for (dptr = delim; dptr < sentinal; dptr++) {
+			if (*cptr == *dptr) {
+				*cptr = '\0';
+				break;
+			}
+		}
+		if (dptr == sentinal)
+			break;
 	}
-	else if (*saveptr == NULL) {
-		cptr = NULL;
-	}
-	else {
-		*saveptr = NULL;
-		cptr = str;
-	}
-
-	goto out;
-
-error:
-out:
-	return cptr;
+	return;
 }
 
 char*
-ts_strrtok(char *str, const char delim)
+ts_strrtok_r(char *str, const char *delim, char **saveptr)
+{
+	char *cptr = NULL;
+	const char *dptr, *sentinal;
+
+	TS_ERR_STR(delim);
+	TS_ERR_NULL(saveptr);
+	if (str) {
+		TS_ERR_STR_EMPTY(str);
+		*saveptr = str;
+	}
+	TS_ERR_STR(*saveptr);
+	ts_strrstrip(*saveptr, delim);
+	TS_ERR_STR(*saveptr);
+
+	sentinal  = PTR_OFFSET(delim, strlen(delim), sizeof(char));
+	cptr = PTR_OFFSET(*saveptr, strlen(*saveptr) - 1, sizeof(char));
+	for (; cptr >= *saveptr; cptr--) {
+		for (dptr = delim; dptr < sentinal; dptr++) {
+			if (*cptr == *dptr) {
+				*cptr = '\0';
+				break;
+			}
+		}
+		if (dptr != sentinal) {
+			str = cptr + sizeof(char);
+			goto out;
+		}
+	}
+
+	/* Reached the beginning of the string, print and unset saveptr */
+	str = *saveptr;
+	*saveptr = NULL;
+	goto out;
+
+error:
+	str = NULL;
+
+out:
+	if (str && str[0] == '\0') {
+		TS_DEBUG("Whups");
+		return (NULL);
+	}
+	return (str);
+}
+
+char*
+ts_strrtok(char *str, const char *delim)
 {
 	static char *lastptr = NULL;
-	return ts_strrtok_r(str, delim, &lastptr);
+	return (ts_strrtok_r(str, delim, &lastptr));
 }
