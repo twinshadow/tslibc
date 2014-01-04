@@ -66,14 +66,22 @@
 		goto error;                     \
 	}
 
-#define TS_ERR_NULL(__val, ...) \
-	TS_CHECK(__val, "Value should not be NULL")
+#define TS_ERR_NULL(__val) \
+	TS_CHECK_DEBUG(__val, "Value should not be NULL")
 
-#define TS_ERR_ZERO(__val, ...) \
-	TS_CHECK(__val != 0, "Value should not be zero")
+#define TS_ERR_ZERO(__val) \
+	TS_CHECK_DEBUG(__val != 0, "Value should not be zero")
 
-#define TS_ERR_NONZERO(__val, ...) \
-	TS_CHECK(__val == 0, "Value should be zero")
+#define TS_ERR_NONZERO(__val) \
+	TS_CHECK_DEBUG(__val == 0, "Value should be zero")
+
+#define TS_ERR_STR_EMPTY(__val) \
+	TS_CHECK_DEBUG((__val)[0] != '\0', "String is empty")
+
+#define TS_ERR_STR(__val) do { \
+	TS_ERR_NULL(__val); \
+	TS_ERR_STR_EMPTY(__val); \
+} while (0);
 
 #define TS_DEBUG_PTR(__ptr) TS_DEBUG("%08lx", (long int)__ptr)
 
