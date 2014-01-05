@@ -24,7 +24,6 @@
 */
 
 #include <string.h>
-
 #include "twinshadow/net.h"
 
 /*

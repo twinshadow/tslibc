@@ -1,7 +1,8 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <check/sort.h>
+
+#include "check/sort.h"
 
 int*
 random_int_list(int count)

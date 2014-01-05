@@ -15,15 +15,16 @@ RM:=		rm
 
 PKG_NAME=	$(shell basename "${PWD}")
 
-SRCS=		$(shell find -maxdepth 1 \( -name '*.c' -and -not -name 'check_*' \) -printf '%P\n')
+SRCS=		$(shell find -maxdepth 1 \( -name '*.c' -and -not -name 'check_*' -and -not -name 'checksupp_*' \) -printf '%P\n')
 OBJS=		$(SRCS:.c=.o)
 
-CHECK_SRCS:=	$(wildcard check_*.c)
-CHECK_OBJS:=	$(CHECK_SRCS:.c=.co)
-CHECK_BINS:=	$(CHECK_SRCS:.c=)
-CHECK_PKG:=	check_${PKG_NAME}
-CHECKSUPP_SRCS:=	$(wildcard checksupp_*.c)
-CHECKSUPP_OBJS:=	$(CHECKSUPP_SRCS:.c=.co)
+CHECK_SRCS=	$(wildcard check_*.c)
+CHECK_OBJS=	$(CHECK_SRCS:.c=.co)
+CHECK_BINS=	$(CHECK_SRCS:.c=)
+CHECK_BINS_RUN=	$(CHECK_BINS:%=run-%)
+CHECK_PKG=	check_${PKG_NAME}
+CHECKSUPP_SRCS=	$(wildcard checksupp_*.c)
+CHECKSUPP_OBJS=	$(CHECKSUPP_SRCS:.c=.co)
 
 # _____ _
 #|  ___| | __ _  __ _ ___
@@ -90,20 +91,30 @@ check-build: ${CHECK_BINS}
 
 check-run: check-build
 ifdef VALGRIND
-	@for CHK in ${CHECK_BINS}; do \
+	@for CHK in ${CHECK_BINS}; do              \
 	valgrind                                   \
 	    --suppressions=${TOP}/ts_valgrind.supp \
 	    --leak-check=full                      \
 	    --quiet                                \
-	    ./$$CHK;\
+	    ./$$CHK;                               \
 	done;
 else
 	@for CHK in ${CHECK_BINS}; do \
-	    ./$$CHK;\
+	    ./$$CHK;                  \
 	done;
 endif
 
 check: check-run
+
+${CHECK_BINS_RUN}:
+	RUNBIN=$(@:run-%=%);                       \
+	rm -f $$RUNBIN;                            \
+	${MAKE} $$RUNBIN;                          \
+	valgrind                                   \
+	    --suppressions=${TOP}/ts_valgrind.supp \
+	    --leak-check=full                      \
+	    --quiet                                \
+	    $$RUNBIN;
 
 analyze:
 	@clang --analyze ${CFLAGS} ${SRCS}

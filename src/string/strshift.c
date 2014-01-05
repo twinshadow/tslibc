@@ -23,12 +23,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <stdint.h>
-#include <stdlib.h>
-
-#include "twinshadow/error.h"
 #include "twinshadow/string.h"
-#include "twinshadow/macro.h"
 
 void
 ts_memshift(int offset, void *ptr, size_t len)
@@ -70,7 +65,7 @@ void
 ts_strshift(int offset, char *str)
 {
 	TS_CHECK_DEBUG(str[0] != '\0', "Empty string.");
-	ts_memshift(offset, str, strnlen(str, SIZE_MAX - 1));
+	ts_memshift(offset, str, strnlen(str, SIZE_MAX));
 error:
 	return;
 }

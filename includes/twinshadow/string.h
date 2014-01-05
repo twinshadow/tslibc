@@ -26,9 +26,11 @@
 #ifndef TWINSHADOW_STRING_H
 #define TWINSHADOW_STRING_H
 
+#include <stdlib.h>
 #include <string.h>
-#include <twinshadow/error.h>
+#include <stdint.h>
 #include <twinshadow/macro.h>
+#include <twinshadow/error.h>
 
 /* ts_strrtok_r
 

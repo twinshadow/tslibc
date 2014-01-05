@@ -1,9 +1,3 @@
-#include <sys/time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <limits.h>
-#include <string.h>
-
 #include "check/twinshadow.h"
 #include "twinshadow/std.h"
 #include "check/sort.h"

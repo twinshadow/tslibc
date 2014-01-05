@@ -24,10 +24,6 @@
 */
 
 #include <ctype.h>
-#include <stdint.h>
-#include <stdio.h>
-
-#include "twinshadow/error.h"
 #include "twinshadow/string.h"
 
 void
@@ -63,5 +59,5 @@ out:
 void
 ts_strstrip(char *str)
 {
-	ts_strnstrip(str, strnlen(str, SIZE_MAX - 1));
+	ts_strnstrip(str, strnlen(str, SIZE_MAX));
 }

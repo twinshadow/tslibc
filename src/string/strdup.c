@@ -23,10 +23,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <stdint.h>
-#include <stdlib.h>
-
-#include "twinshadow/error.h"
 #include "twinshadow/string.h"
 
 void *
@@ -55,6 +51,5 @@ ts_strndup(const char *ptr, size_t count)
 char *
 ts_strdup(const char *ptr)
 {
-	return (ts_memdup(ptr, (strnlen(ptr,
-	    (SIZE_MAX - (2 * sizeof(char)))) + 1 * sizeof(char))));
+	return (ts_memdup(ptr, strnlen(ptr, SIZE_MAX)));
 }

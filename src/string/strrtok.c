@@ -22,15 +22,16 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include <twinshadow/string.h>
+
+#include "twinshadow/string.h"
 
 void
 ts_strrstrip(char *str, const char *delim) {
 	char *cptr;
 	const char *dptr, *sentinal;
 
-	sentinal  = PTR_OFFSET(delim, strlen(delim), sizeof(char));
-	cptr = PTR_OFFSET(str, strlen(str) - 1, sizeof(char));
+	sentinal  = PTR_OFFSET(delim, strnlen(delim, SIZE_MAX), sizeof(char));
+	cptr = PTR_OFFSET(str, strnlen(str, SIZE_MAX) - 1, sizeof(char));
 	for (; cptr >= str; cptr--) {
 		for (dptr = delim; dptr < sentinal; dptr++) {
 			if (*cptr == *dptr) {
@@ -60,8 +61,8 @@ ts_strrtok_r(char *str, const char *delim, char **saveptr)
 	ts_strrstrip(*saveptr, delim);
 	TS_ERR_STR(*saveptr);
 
-	sentinal  = PTR_OFFSET(delim, strlen(delim), sizeof(char));
-	cptr = PTR_OFFSET(*saveptr, strlen(*saveptr) - 1, sizeof(char));
+	sentinal  = PTR_OFFSET(delim, strnlen(delim, SIZE_MAX), sizeof(char));
+	cptr = PTR_OFFSET(*saveptr, strnlen(*saveptr, SIZE_MAX) - 1, sizeof(char));
 	for (; cptr >= *saveptr; cptr--) {
 		for (dptr = delim; dptr < sentinal; dptr++) {
 			if (*cptr == *dptr) {

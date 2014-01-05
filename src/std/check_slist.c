@@ -108,4 +108,4 @@ tcase_slist(void) {
 	return tc;
 }
 
-HECK_MAIN_STANDALONE(slist);
+CHECK_MAIN_STANDALONE(slist);

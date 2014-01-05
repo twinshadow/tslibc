@@ -1,5 +1,4 @@
 #include "twinshadow/vector.h"
-#include <stdint.h>
 
 void
 ts_vector_init(struct ts_vector_s *head, size_t size) {

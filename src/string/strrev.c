@@ -23,10 +23,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <stdint.h>
-
-#include "twinshadow/error.h"
-#include "twinshadow/macro.h"
 #include "twinshadow/string.h"
 
 void
@@ -34,24 +30,18 @@ ts_strnrev(char *head, const size_t len)
 {
 	char *tail, swap;
 
-	TS_CHECK_DEBUG(head, "A NULL pointer was passed in.");
-	TS_CHECK_DEBUG(head[0] != '\0', "Empty string.");
-	TS_CHECK_DEBUG(len > 1, "Empty string.");
-
-	for (tail = head + len; head < tail; head++, tail--)
+	TS_ERR_STR(head);
+	for (tail = PTR_OFFSET(head, len - 1, sizeof(char)); head < tail; head++, tail--)
 		SWAP(*head, *tail, swap);
-
-	goto out;
-
 error:
-out:
 	return;
 }
 
 void
 ts_strrev(char *str)
 {
-	UNLESS (str)
-		return;
-	ts_strnrev(str, strnlen(str, SIZE_MAX - 1) - 1);
+	TS_ERR_STR(str);
+	ts_strnrev(str, strnlen(str, SIZE_MAX));
+error:
+	return;
 }

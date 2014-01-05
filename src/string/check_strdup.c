@@ -24,3 +24,5 @@ tcase_strdup(void) {
 	tcase_add_test(tc, strdup_test);
 	return tc;
 }
+
+CHECK_MAIN_STANDALONE(strdup);

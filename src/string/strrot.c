@@ -23,10 +23,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <stdint.h>
-
-#include "twinshadow/error.h"
-#include "twinshadow/macro.h"
 #include "twinshadow/string.h"
 
 void
