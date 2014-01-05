@@ -110,5 +110,6 @@ int ts_vector_shift(struct ts_vector_s *head, void *data);
 int ts_vector_remove(struct ts_vector_s *head, void *data, ts_vector_idx_t idx);
 struct ts_array_s *ts_vector_to_array(struct ts_vector_s *head);
 struct ts_vector_s *ts_array_to_vector(struct ts_array_s *head);
+struct ts_vector_s *ts_mem_to_vector(void *ptr, size_t count, size_t size);
 
 #endif /* TWINSHADOW_VECTOR_H */

@@ -48,6 +48,8 @@ TCase *tcase_strdup(void);
  * find "${TOP}/src" -name 'check_*.c' | cut -d'_' -f2 | xargs -I% -- basename % .c
  */
 
+#define CK_NULL(X) ck_assert(X != NULL)
+
 /* srunner_cora
  * 	Does a srunner create or add, more smarter */
 

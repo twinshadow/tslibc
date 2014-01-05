@@ -25,6 +25,22 @@ error:
 	return;
 }
 
+int
+ts_vector_init_data(struct ts_vector_s *head, size_t count, size_t size, void *data) {
+	TS_ERR_NULL(head);
+	TS_ERR_NULL(data);
+	TS_ERR_ZERO(size);
+	TS_ERR_ZERO(count);
+	head->size = size;
+	head->head = head->array = data;
+	head->length = head->count = count;
+	head->tail = head->count > 1 ? PTR_OFFSET(head->head, head->count - 1, head->size) : head->head;
+	return (0);
+error:
+	ts_vector_unset(head);
+	return (1);
+}
+
 struct ts_vector_s *
 ts_vector_new(size_t size) {
 	struct ts_vector_s *head;
@@ -83,8 +99,9 @@ error:
 int
 ts_vector_operate(
     struct ts_vector_s *head,
-    ts_vector_operation_t operation,
     void *data,
+    size_t count,
+    ts_vector_operation_t operation,
     ts_vector_idx_t idx) {
 	void *ptr = NULL;
 	int result = 0;
@@ -148,33 +165,33 @@ ts_vector_find(struct ts_vector_s *head, void *data) {
 // modifiers - insert
 int
 ts_vector_push(struct ts_vector_s *head, void *data) {
-	return (ts_vector_operate(head, TS_VECTOR_OP_INSERT, data, TS_VECTOR_IDX_TAIL));
+	return (ts_vector_operate(head, data, 1, TS_VECTOR_OP_INSERT, TS_VECTOR_IDX_TAIL));
 }
 
 int
 ts_vector_unshift(struct ts_vector_s *head, void *data) {
-	return ts_vector_operate(head, TS_VECTOR_OP_INSERT, data, TS_VECTOR_IDX_HEAD);
+	return ts_vector_operate(head, data, 1, TS_VECTOR_OP_INSERT, TS_VECTOR_IDX_HEAD);
 }
 
 int
 ts_vector_insert(struct ts_vector_s *head, void *data, ts_vector_idx_t idx) {
-	return ts_vector_operate(head, TS_VECTOR_OP_INSERT, data, idx);
+	return ts_vector_operate(head, data, 1, TS_VECTOR_OP_INSERT, idx);
 }
 
 // modifiers - remove
 int
 ts_vector_pop(struct ts_vector_s *head, void *data) {
-	return ts_vector_operate(head, TS_VECTOR_OP_REMOVE, data, TS_VECTOR_IDX_TAIL);
+	return ts_vector_operate(head, data, 1, TS_VECTOR_OP_REMOVE, TS_VECTOR_IDX_TAIL);
 }
 
 int
 ts_vector_shift(struct ts_vector_s *head, void *data) {
-	return ts_vector_operate(head, TS_VECTOR_OP_REMOVE, data, TS_VECTOR_IDX_HEAD);
+	return ts_vector_operate(head, data, 1, TS_VECTOR_OP_REMOVE, TS_VECTOR_IDX_HEAD);
 }
 
 int
 ts_vector_remove(struct ts_vector_s *head, void* data, ts_vector_idx_t idx) {
-	return ts_vector_operate(head, TS_VECTOR_OP_REMOVE, data, idx);
+	return ts_vector_operate(head, data, 1, TS_VECTOR_OP_REMOVE, idx);
 }
 
 // conversion
@@ -196,17 +213,31 @@ struct ts_vector_s*
 ts_array_to_vector(struct ts_array_s *head) {
 	struct ts_vector_s *buf;
 	TS_ERR_ARRAY_IS_VALID(head);
-	buf = calloc(1, sizeof(struct ts_vector_s));
+	buf = ts_mem_to_vector(head->head, TS_ARRAY_COUNT(head), head->size);
 	TS_ERR_NULL(buf);
-	buf->size = head->size;
-	buf->length = buf->count = PTR_COUNT(head->tail, head->head, head->size);
-	buf->head = buf->array = malloc(buf->count * buf->size);
-	TS_ERR_NULL(buf->array);
-	memcpy(buf->array, head->head, buf->count * buf->size);
-	buf->tail = PTR_OFFSET(buf->array, buf->count - 1, buf->size);
 	return (buf);
 error:
 	if (buf != NULL)
-		free(buf);
+		ts_vector_free(buf);
+	return (NULL);
+}
+
+struct ts_vector_s*
+ts_mem_to_vector(void *ptr, size_t count, size_t size) {
+	struct ts_vector_s *head;
+	void *data;
+	TS_ERR_NULL(ptr);
+	TS_ERR_ZERO(count);
+	TS_ERR_ZERO(size);
+	head = ts_vector_new(size);
+	TS_ERR_NULL(head);
+	data = malloc(count * size);
+	TS_ERR_NULL(data);
+	TS_ERR_NULL(memcpy(data, ptr, count * size));
+	TS_ERR_NONZERO(ts_vector_init_data(head, count, size, data));
+	return (head);
+error:
+	if (head != NULL)
+		ts_vector_free(head);
 	return (NULL);
 }

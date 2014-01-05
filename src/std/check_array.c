@@ -45,21 +45,17 @@ START_TEST(test_array)
 	char **idx;
 	int i;
 
-	TS_DEBUG("%08lx", (long int)buf_array->head);
 	i = 0;
 	TS_ARRAY_FOREACH(idx, buf_array) {
-		*idx = strdup(ts_array_expect[i]);
-		TS_DEBUG("%08lx", (long int)idx);
-		TS_DEBUG("%08lx: %s", (long int)*idx, *idx);
+		*idx = (char*)ts_array_expect[i];
+		ck_assert_ptr_eq(*idx, ts_array_expect[i]);
 		i++;
 	}
-	TS_DEBUG("%08lx", (long int)idx);
-	TS_DEBUG("%08lx", (long int)buf_array->tail);
 
 	i = 4;
 	TS_ARRAY_RFOREACH(idx, buf_array) {
 		TS_DEBUG("%s", *idx);
-		ck_assert_str_eq(*idx, ts_array_expect[i]);
+		ck_assert_ptr_eq(*idx, ts_array_expect[i]);
 		i--;
 	}
 }
@@ -71,12 +67,12 @@ START_TEST(test_array_get_value) {
 
 	REPEAT(i, 5) {
 		idx = ts_array_get(buf_array, i);
-		*idx = strdup(ts_array_expect[i]);
+		*idx = (char*)ts_array_expect[i];
 	}
 
 	REPEAT(i, 5) {
 		idx = ts_array_get(buf_array, i);
-		ck_assert_str_eq(*idx, ts_array_expect[i]);
+		ck_assert_ptr_eq(*idx, ts_array_expect[i]);
 	}
 }
 END_TEST
@@ -87,18 +83,16 @@ START_TEST(test_resize_array_count) {
 
 	i = 0;
 	TS_ARRAY_FOREACH(idx, buf_array) {
-		*idx = strdup(ts_array_expect[i]);
+		*idx = (char*)ts_array_expect[i];
 		TS_DEBUG("%s", *idx);
 		i++;
 	}
 
 	ts_array_resize(buf_array, 10, 0);
 
-	i = 4;
-	TS_ARRAY_FOREACH_OFFSET(idx, buf_array, 4) {
-		if (*idx != NULL)
-			TS_DEBUG("%s", *idx);
-		*idx = strdup(ts_array_expect[i]);
+	i = 5;
+	TS_ARRAY_FOREACH_OFFSET(idx, buf_array, 5) {
+		*idx = (char*)ts_array_expect[i];
 		TS_DEBUG("%s", *idx);
 		i++;
 	}
@@ -106,7 +100,7 @@ START_TEST(test_resize_array_count) {
 	i = 0;
 	TS_ARRAY_FOREACH(idx, buf_array) {
 		TS_DEBUG("%s", *idx);
-		ck_assert_str_eq(*idx, ts_array_expect[i]);
+		ck_assert_ptr_eq(*idx, ts_array_expect[i]);
 		i++;
 	}
 }
@@ -116,16 +110,21 @@ START_TEST(test_resize_array_size) {
 	int i;
 	uint8_t *i1;
 	uint64_t *i2;
-	ts_array_resize(buf_array, 0, sizeof(uint8_t));
-	REPEAT(i, 5) {
+	uint8_t numarray[] = { 255, 128, 64, 32, 0 };
+	size_t numarray_count = 5;
+
+	ts_array_free(buf_array);
+	buf_array = ts_array_new(5, sizeof(uint8_t));
+	REPEAT(i, numarray_count) {
 		i1 = ts_array_get(buf_array, i);
-		*i1 = -i;
+		TS_DEBUG_PTR(i1);
+		memcpy(i1, &numarray[i], sizeof(uint8_t));
 	}
 	ts_array_resize(buf_array, 0, sizeof(uint64_t));
 	REPEAT(i, 5) {
 		i2 = ts_array_get(buf_array, i);
-		TS_DEBUG("%lli == %i", (long long int)*i2, (uint8_t)-i);
-		ck_assert_int_eq(*i2, (uint8_t)-i);
+		TS_DEBUG_PTR(i2);
+		ck_assert_int_eq(*i2, numarray[i]);
 	}
 }
 END_TEST
@@ -135,7 +134,7 @@ START_TEST(test_convert_mem_to_array) {
 	int i;
 	int iter[] = { 12, 24, 36, 48, 60 };
 
-	free(buf_array);
+	ts_array_free(buf_array);
 	buf_array = ts_mem_to_array(iter, 5, sizeof(int));
 	i = 0;
 	TS_ARRAY_FOREACH(idx, buf_array) {

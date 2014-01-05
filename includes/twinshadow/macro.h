@@ -28,7 +28,7 @@
 
 #define POSITIVE(X) (((X) > 0) ? (X) : -(X))
 #define NEGATIVE(X) (((X) < 0) ? (X) : -(X))
-#define PTR_OFFSET(__ptr, __count, __size) ((__ptr) + ((__count) * (__size)))
+#define PTR_OFFSET(__ptr, __count, __size) ((__count) == 0 ? (__ptr) : (__ptr) + ((__count) * (__size)))
 #define PTR_COUNT(__ptr1, __ptr2, __size) ((__ptr1) > (__ptr2) ? ((__ptr1) - (__ptr2)) / (__size) : 0)
 #define LENGTH(X) (sizeof(X) / sizeof(X[0]))
 #define UNLESS(X) if (!(X))
@@ -75,7 +75,7 @@
 #define REPEAT(__idx, __comp) for (__idx = 0; __idx < __comp; __idx++)
 #define ITERATE(__idx, __comp) \
 	for (__idx = 0; ; __idx++)
-#define COUNTDOWN(__idx, __comp) for (__idx; __idx > 0; __idx--)
+#define COUNTDOWN(__idx, __comp) for (__idx = __comp; __idx >= 0; __idx--)
 
 /* This takes ridiculous offset amounts and reduces them to the actual amount
  * needed to rotate the appropriate amount. It then converts negative values

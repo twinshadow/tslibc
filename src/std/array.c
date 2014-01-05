@@ -10,8 +10,8 @@ ts_array_init(struct ts_array_s *head, size_t count, size_t size, void *data) {
 	else
 		head->head = data;
 	TS_ERR_NULL(head->head);
-	head->tail = PTR_OFFSET(head->head, count - 1, size);
 	head->size = size;
+	head->tail = TS_ARRAY_TAIL(head, count);
 	return (0);
 error:
 	return (1);
@@ -47,11 +47,9 @@ void
 ts_array_free(struct ts_array_s *head) {
 	if (head == NULL)
 		return;
-
 	if (head->head)
 		free(head->head);
 	ts_array_unset(head);
-
 	free(head);
 }
 
@@ -62,43 +60,56 @@ ts_array_resize(struct ts_array_s *head, size_t count, size_t size) {
 	size_t idx;
 
 	TS_ERR_ARRAY_IS_VALID(head);
-	oldcount = PTR_COUNT(head->tail, head->head, head->size) + 1;
+	oldcount = TS_ARRAY_COUNT(head);
 
-	if (!count)
+	if (count == 0)
 		count = oldcount;
 
-	if (!size)
+	if (size == 0)
 		size = head->size;
 
 	if (size == head->size && count == oldcount)
 		return;
 
-	map = realloc(head->head, count * size);
+	TS_CHECK(size >= head->size && count >= oldcount, "Shrinking arrays is not supported.")
 
-	TS_ERR_NULL(map);
-
-	if (size != head->size) {
-		REPEAT(idx, oldcount)
-			memcpy(map + (idx * size), PTR_OFFSET(head->head, idx, head->size), head->size);
+	/* Shift the old data into the re-sized buckets */
+	/* TODO: Handle shrinking data? Drop bits? */
+	if (size > head->size && count >= oldcount) {
+		map = calloc(count, size);
+		TS_ERR_NULL(map);
+		REPEAT(idx, oldcount) {
+			memcpy(PTR_OFFSET(map, idx, size), PTR_OFFSET(head->head, idx, head->size), head->size);
+		}
+		head->size = size;
+		free(head->head);
+	}
+	else {
+		map = realloc(head->head, count * size);
+		TS_ERR_NULL(map);
 	}
 	head->head = map;
 
-	if (count != oldcount) {
-		if (oldcount < count && size == head->size) {
-			/* clear out unused memory from realloc */
-			memset(PTR_OFFSET(head->head, oldcount, size), '\0',
-			    count - oldcount);
-		}
+	if (oldcount < count) {
+		/* clear out junk memory from realloc */
+		memset(PTR_OFFSET(head->head, oldcount, head->size), '\0',
+		    count - oldcount);
 	}
-	head->tail = PTR_OFFSET(head->head, count - 1, size);
 
+	head->tail = TS_ARRAY_TAIL(head, count);
+	return;
 error:
+	if (map != NULL)
+		free(map);
 	return;
 }
 
 void *
 ts_array_get(struct ts_array_s *head, size_t offset) {
+	TS_ERR_NULL(head);
 	return PTR_OFFSET(head->head, offset, head->size);
+error:
+	return (NULL);
 }
 
 struct ts_array_s*

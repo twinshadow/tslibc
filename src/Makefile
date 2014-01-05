@@ -71,7 +71,7 @@ ${CHECK_BINS}: ${CHECKSUPP_OBJS}
 	CHK_SRC=$(@:=.c); \
 	FUN_OBJ=$(@:check_%=%.c); \
 	${MAKE} $$FUN_OBJ; \
-	${CC} ${CFLAGS} ${COV_CFLAGS} -DCHECK_STANDALONE ${LDFLAGS} ${checklibs} -o $@ $$CHK_SRC $$FUN_OBJ $^
+	${CC} ${CFLAGS} ${COV_CFLAGS} -Wno-unused-function -DCHECK_STANDALONE ${LDFLAGS} ${checklibs} -o $@ $$CHK_SRC $$FUN_OBJ $^
 
 # _____                    _
 #|_   _|_ _ _ __ __ _  ___| |_ ___

@@ -28,6 +28,7 @@
 
 struct ts_vector_s *buf_vector = NULL;
 uint8_t numbuf[] = { 42, 36, 18, 64, 101, 88, 19, 21, 76, 48, 88, 24 };
+size_t numbuf_count = 12;
 
 START_TEST(push_value)
 {
@@ -111,9 +112,53 @@ START_TEST(test_vector_to_array) {
 }
 END_TEST
 
-START_TEST(test_array_to_vector) {
+START_TEST(vector_get_null_not_segfault) {
+	ck_assert(ts_vector_get(buf_vector, 0) == NULL);
 }
 END_TEST
+
+START_TEST(test_array_to_vector) {
+	int idx;
+	uint8_t *up1, *up2;
+	struct ts_array_s *buf_array;
+	ts_vector_free(buf_vector);
+	buf_array = ts_mem_to_array(numbuf, 12, sizeof(uint8_t));
+	ck_assert(buf_array != NULL);
+	buf_vector = ts_array_to_vector(buf_array);
+	ck_assert(buf_array != NULL);
+	REPEAT(idx, 12) {
+		up1 = ts_array_get(buf_array, idx);
+		up2 = ts_vector_get(buf_vector, idx);
+		CK_NULL(up1);
+		CK_NULL(up2);
+		ck_assert_int_eq(*up1, *up2);
+		TS_DEBUG("%d", (int)*up1);
+	}
+	ts_array_free(buf_array);
+}
+END_TEST
+
+START_TEST(test_mem_to_vector) {
+	int idx;
+	uint8_t *up1, *up2;
+	ts_vector_free(buf_vector);
+	buf_vector = ts_mem_to_vector(numbuf, 12, sizeof(uint8_t));
+	CK_NULL(buf_vector);
+	REPEAT(idx, 12) {
+		up1 = &numbuf[idx];
+		up2 = ts_vector_get(buf_vector, idx);
+		CK_NULL(up1);
+		CK_NULL(up2);
+		ck_assert_int_eq(*up1, *up2);
+	}
+}
+END_TEST
+
+/*
+START_TEST() {
+}
+END_TEST
+*/
 
 void
 setup_vector(void) {
@@ -135,6 +180,8 @@ tcase_vector(void) {
 	tcase_add_test(tc, unshift_pop_array);
 	tcase_add_test(tc, test_vector_to_array);
 	tcase_add_test(tc, test_array_to_vector);
+	tcase_add_test(tc, vector_get_null_not_segfault);
+	tcase_add_test(tc, test_mem_to_vector);
 	return tc;
 }
 

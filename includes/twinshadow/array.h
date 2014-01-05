@@ -42,6 +42,14 @@ struct ts_array_s {
 	void *tail;
 };
 
+#define TS_ARRAY_COUNT(__head) ( \
+	(__head)->tail == (__head)->head ? 1 : \
+		PTR_COUNT((__head)->tail, (__head)->head, (__head)->size) + 1)
+
+#define TS_ARRAY_TAIL(__head, __count) ( \
+	__count > 1 ? PTR_OFFSET((__head)->head, __count - 1, (__head)->size) \
+		: (__head)->head)
+
 /* iterators */
 #define __TS_ARRAY_FOREACH(__var, __head, __offset, __size, __limit) \
 for (__var  = PTR_OFFSET((__head)->head, __offset, (__head)->size);  \
