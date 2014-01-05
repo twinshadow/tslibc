@@ -39,15 +39,17 @@ test_me (char *test_str, char *test_tok, size_t token_count) {
 	buf_strtok = strdup(test_str);
 	buf_strrtok_xpct = calloc(token_count, sizeof(char*));
 	ptr = buf_strrtok_xpct;
-	STRTOK(buf_strtok, test_tok, ptr);
+	STRTOK(*ptr, buf_strtok, test_tok) {
+		ptr++;
+	}
 
-	rptr = ts_strrtok(buf_strrtok, test_tok);
-	do {
+	STRRTOK(rptr, buf_strrtok, test_tok) {
+		ptr--;
 		ck_assert(*ptr >= *buf_strrtok_xpct);
 		ck_assert(rptr != NULL);
 		TS_DEBUG("'%s' == '%s'", rptr, *ptr);
 		ck_assert_str_eq(rptr, *ptr);
-	} while((rptr = ts_strrtok(NULL, test_tok)) != NULL && ptr--);
+	}
 	ck_assert(*ptr == *buf_strrtok_xpct);
 }
 

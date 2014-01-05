@@ -88,19 +88,32 @@
 		(__offset) = (__len) - -(__offset);              \
 }
 
-/* Turn __str into a 2D array of words, pointed to by __ptr, using strtok or ts_strrtok */
-#define __STRTOK(__str, __tok, __ptr, __func) do { \
-	*(__ptr) = __func(__str, __tok);           \
-	TS_DEBUG("%s", *(__ptr));                  \
-	(__ptr)++;                                 \
-	do {                                       \
-		*(__ptr) = __func(NULL, __tok);     \
-		TS_DEBUG("%s", *(__ptr));          \
-	} while (*(__ptr) != NULL && (__ptr)++);   \
-	(ptr--);                                   \
-} while (0)
+/* Iterate over a string using string-tokenizing functions strtok, strtok_r,
+ * ts_strrtok, ts_strrtok_r
 
-#define STRTOK(__str, __tok, __ptr) __STRTOK(__str, __tok, __ptr, strtok)
-#define STRRTOK(__str, __tok, __ptr) __STRTOK(__str, __tok, __ptr, ts_strrtok)
+	#include <stdio.h>
+	#include <string.h>
+	#include <stdlib.h>
+	#include <twinshadow/macro.h>
+
+	char *idx;
+	char *str = strdup("I was mad, but then I got better.");
+	STRTOK(idx, str, " .,") {
+		printf("%s\n", idx);
+	}
+	free(str);
+*/
+#define __STRTOK(__ptr, __str, __tok, __func) \
+	for((__ptr) = (__func)(__str, __tok); (__ptr) != NULL; (__ptr) = (__func)(NULL, __tok)) 
+
+#define STRTOK(__ptr, __str, __tok) __STRTOK(__ptr, __str, __tok, strtok)
+#define STRRTOK(__ptr, __str, __tok) __STRTOK(__ptr, __str, __tok, ts_strrtok)
+
+#define __STRTOK_R(__ptr, __str, __tok, __saveptr, __func) \
+	for((__ptr) = (__func)(__str, __tok, __saveptr); (__ptr) != NULL; (__ptr) = (__func)(NULL, __tok, __saveptr)) 
+
+#define STRTOK_R(__ptr, __str, __tok, __saveptr) __STRTOK_R(__ptr, __str, __tok, __saveptr, strtok_r)
+#define STRRTOK_R(__ptr, __str, __tok, __saveptr) __STRTOK_R(__ptr, __str, __tok, __saveptr, ts_strrtok_r)
+
 
 #endif /* TWINSHADOW_MACROS_H */
