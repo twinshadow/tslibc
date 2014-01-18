@@ -42,7 +42,7 @@ COV_CFLAGS+=	-fprofile-arcs -ftest-coverage
 LDFLAGS+=	-lgcov -fprofile-arcs -ftest-coverage
 endif
 
-CFLAGS+=	-I${TOP}/includes -g -fPIC -Wall -Werror
+CFLAGS+=	-I${TOP}/include -g -fPIC -Wall -Werror
 prefix=		${TOP}/pkg
 exec_prefix=	${prefix}
 libdir=		${prefix}/lib

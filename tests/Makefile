@@ -1,7 +1,7 @@
 TOP=		..
 
 PROGS=		runner
-CFLAGS+=	-I${TOP}/includes -g -fPIC -Wall -Werror
+CFLAGS+=	-I${TOP}/include -g -fPIC -Wall -Werror
 OBJS:=		$(shell find ${TOP}/src -name '*.o' -or -name '*.co')
 LDFLAGS+=	-lcheck
 

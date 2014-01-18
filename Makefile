@@ -18,7 +18,7 @@ clean: ${clean_TARGETS}
 install: ${install_TARGETS}
 	${MKDIR} -p ${includedir}
 	${MKDIR} -p ${libdir}
-	${CP} -r includes/twinshadow ${includedir}
+	${CP} -r include/twinshadow ${includedir}
 	${AR} -cvq ${libdir}/libts.a $(shell find src -name '*.o')
 	${CC} ${CFLAGS} ${LDFLAGS} -shared -o ${libdir}/libts.so $(shell find src -name '*.o')
 
