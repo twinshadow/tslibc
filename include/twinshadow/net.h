@@ -37,8 +37,8 @@
 			(((struct sockaddr_in*)X)->sin_addr) : \
 			(((struct sockaddr_in6*)X)->sin6_addr)}
 
-int soconnect(struct addrinfo *ad, void *(sockset)(int sock));
-int sobind(struct addrinfo *ad, void *(sockset)(int sock));
+int soconnect(struct addrinfo *ad, int (*sockset)(int sock));
+int sobind(struct addrinfo *ad, int (*sockset)(int sock));
 struct addrinfo* get_addr(const char *address,
 			  const char *port,
 			  const int family,

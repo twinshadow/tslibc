@@ -29,19 +29,33 @@
  * return socket connection from addrinfo
  */
 int
-soconnect(struct addrinfo *ad)
+soconnect(struct addrinfo *ad, int (*sockset)(int sock))
 {
-	int sock_fd = socket(ad->ai_family, ad->ai_socktype, ad->ai_protocol);
+	int err = 0;
+	int sock_fd;
 
+	sock_fd	= socket(ad->ai_family, ad->ai_socktype, ad->ai_protocol);
 	if(sock_fd < 0)
-		return sock_fd;
+		goto error;
 
-	if(connect(sock_fd, ad->ai_addr, ad->ai_addrlen) == -1)
-	{
-		close(sock_fd);
-		return -1;
+	if (sockset != NULL) {
+		err = sockset(sock_fd);
+		if (err != 0) {
+			perror("sockset");
+			goto error;
+		}
+	}
+	err = connect(sock_fd, ad->ai_addr, ad->ai_addrlen);
+	if(err == -1) {
+		perror("connect");
+		goto error;
 	}
 
+error:
+	if (sock_fd)
+		close(sock_fd);
+	sock_fd = -1;
+out:
 	return sock_fd;
 }
 
@@ -49,18 +63,33 @@ soconnect(struct addrinfo *ad)
  * return socket binding from addrinfo
  */
 int
-sobind(struct addrinfo *ad)
+sobind(struct addrinfo *ad, int (*sockset)(int sock))
 {
-	int sock_fd = socket(ad->ai_family, ad->ai_socktype, ad->ai_protocol);
+	int err = 0;
+	int sock_fd;
 
+	sock_fd	= socket(ad->ai_family, ad->ai_socktype, ad->ai_protocol);
 	if(sock_fd < 0)
-		return sock_fd;
+		goto error;
 
-	if(bind(sock_fd, ad->ai_addr, ad->ai_addrlen) == -1)
-	{
-		close(sock_fd);
-		return -1;
+	if (sockset != NULL) {
+		err = sockset(sock_fd);
+		if (err != 0) {
+			perror("sockset");
+			goto error;
+		}
 	}
 
+	err = bind(sock_fd, ad->ai_addr, ad->ai_addrlen);
+	if(err == -1) {
+		perror("bind");
+		goto error;
+	}
+
+error:
+	if (sock_fd)
+		close(sock_fd);
+	sock_fd = -1;
+out:
 	return sock_fd;
 }
