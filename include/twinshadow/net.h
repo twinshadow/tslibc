@@ -26,18 +26,19 @@
 #ifndef TWINSHADOW_NET_H
 #define TWINSHADOW_NET_H
 
-#include <errno.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+#include "twinshadow/error.h"
+
 #define INADDR(X) {(X->sa_family == AF_INET) ? \
 			(((struct sockaddr_in*)X)->sin_addr) : \
 			(((struct sockaddr_in6*)X)->sin6_addr)}
 
-int soconnect(struct addrinfo *ad);
-int sobind(struct addrinfo *ad);
+int soconnect(struct addrinfo *ad, void *(sockset)(int sock));
+int sobind(struct addrinfo *ad, void *(sockset)(int sock));
 struct addrinfo* get_addr(const char *address,
 			  const char *port,
 			  const int family,

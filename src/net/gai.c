@@ -25,6 +25,47 @@
 
 #include <string.h>
 #include "twinshadow/net.h"
+#include <sys/un.h>
+#include <stdlib.h>
+
+struct addrinfo*
+get_addr_unix(const char *path,
+              const int socktype,
+	      const int flags,
+	      const int proto) {
+	struct addrinfo *adr;
+	struct sockaddr_un *sun;
+
+	sun = calloc(1, sizeof(struct sockaddr_un));
+	TS_ERR_NULL(sun);
+	sun->sun_family = AF_UNIX;
+
+	TS_ERR_STR(path);
+	/* ensure the path fits in the struct */
+	if (strlen(path) >= sizeof sun->sun_path) {
+		goto error;
+	}
+	strcpy(sun->sun_path, path);
+
+	adr = calloc(1, sizeof(struct addrinfo));
+	TS_ERR_NULL(adr);
+	adr->ai_family = AF_UNIX;
+	adr->ai_socktype = socktype;
+	adr->ai_flags = flags;
+	adr->ai_protocol = proto;
+	adr->ai_addrlen = SUN_LEN(sun);
+	adr->ai_addr = (struct sockaddr *)sun;
+	goto out;
+
+error:
+	if (sun != NULL)
+		free(sun);
+	if (adr != NULL)
+		free(adr);
+	adr = NULL;
+out:
+	return (adr);
+}
 
 /*
  * Return the addrinfo from the selected options
@@ -38,7 +79,12 @@ get_addr(const char *address,
 	const int proto)
 {
 	struct addrinfo hint;
-	struct addrinfo *adr;
+	struct addrinfo *adr = NULL;
+	int err;
+
+	if (family == AF_UNIX) {
+		return get_addr_unix(address, socktype, flags, proto);
+	}
 
 	memset(&hint, 0, sizeof(hint));
 	hint.ai_family = family;
@@ -46,11 +92,21 @@ get_addr(const char *address,
 	hint.ai_flags = flags;
 	hint.ai_protocol = proto;
 
-	if (getaddrinfo(address, port, &hint, &adr) != 0)
-	{
-		if (adr != NULL)
+	err = getaddrinfo(address, port, &hint, &adr);
+	if (err != 0)
+		goto error;
+	else
+		goto out;
+
+error:
+	perror(gai_strerror(err));
+	if (adr != NULL) {
+		if (adr->ai_addr != NULL)
 			freeaddrinfo(adr);
-		return (NULL);
+		else
+			free(adr);
 	}
+	adr = NULL;
+out:
 	return (adr);
 }
