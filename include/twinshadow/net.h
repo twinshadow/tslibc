@@ -37,14 +37,48 @@
 			(((struct sockaddr_in*)X)->sin_addr) : \
 			(((struct sockaddr_in6*)X)->sin6_addr)}
 
-int soconnect(struct addrinfo *ad, int (*sockset)(int sock));
-int sobind(struct addrinfo *ad, int (*sockset)(int sock));
-struct addrinfo* get_addr(const char *address,
+#define TS_SOCK_OPEN(__addrinfo, __fd) do {       \
+	__fd = socket((__addrinfo)->ai_family,    \
+	              (__addrinfo)->ai_socktype,  \
+	              (__addrinfo)->ai_protocol); \
+	TS_ERR_FD(__fd);                          \
+} while (0)
+
+#define TS_SOCK_CLOSE(__fd) do { \
+	if (__fd >= 0) {         \
+		close(__fd);     \
+	}                        \
+	__fd = -1;               \
+} while (0)
+
+#define TS_SOCK_CONNECT(__addrinfo, __fd) do {                                     \
+	if(connect(__fd, (__addrinfo)->ai_addr, (__addrinfo)->ai_addrlen) == -1) { \
+		perror("connect");                                                 \
+		goto error;                                                        \
+	}                                                                          \
+} while (0)
+
+#define TS_SOCK_BIND(__addrinfo, __fd) do {                                     \
+	if(bind(__fd, (__addrinfo)->ai_addr, (__addrinfo)->ai_addrlen) == -1) { \
+		perror("bind");                                                 \
+		goto error;                                                     \
+	}                                                                       \
+} while (0)
+
+#define TS_GAI_TCPIP(__addr, __port) \
+	ts_getaddr(__addr, __port, AF_INET, SOCK_STREAM, 0, 0)
+
+int soconnect(struct addrinfo *ad);
+int sobind(struct addrinfo *ad);
+struct addrinfo* ts_getaddr(const char *address,
 			  const char *port,
 			  const int family,
 			  const int socktype,
 			  const int flags,
 			  const int proto);
+struct addrinfo* ts_getaddr_unix(const char *path,
+			         const int socktype,
+			         const int flags,
+			         const int proto);
 
 #endif /* TWINSHADOW_NET_H */
-

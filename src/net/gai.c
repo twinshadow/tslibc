@@ -29,7 +29,7 @@
 #include <stdlib.h>
 
 struct addrinfo*
-get_addr_unix(const char *path,
+ts_getaddr_unix(const char *path,
               const int socktype,
 	      const int flags,
 	      const int proto) {
@@ -71,7 +71,7 @@ out:
  * Return the addrinfo from the selected options
  */
 struct addrinfo*
-get_addr(const char *address,
+ts_getaddr(const char *address,
 	const char *port,
 	const int family,
 	const int socktype,
@@ -83,7 +83,7 @@ get_addr(const char *address,
 	int err;
 
 	if (family == AF_UNIX) {
-		return get_addr_unix(address, socktype, flags, proto);
+		return ts_getaddr_unix(address, socktype, flags, proto);
 	}
 
 	memset(&hint, 0, sizeof(hint));
@@ -101,6 +101,7 @@ get_addr(const char *address,
 error:
 	perror(gai_strerror(err));
 	if (adr != NULL) {
+		/* glibc 2.6 freeaddrinfo will segfault if ai_addr is NULL */
 		if (adr->ai_addr != NULL)
 			freeaddrinfo(adr);
 		else
