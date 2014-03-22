@@ -1,0 +1,24 @@
+#include "check/twinshadow.h"
+
+START_TEST(test_${name})
+{
+}
+END_TEST
+
+void
+setup_${name}_test(void) {
+}
+
+void
+teardown_${name}_test(void) {
+}
+
+TCase *
+tcase_${name}(void) {
+	TCase *tc = tcase_create("${name}");
+	tcase_add_checked_fixture(tc, setup_${name}_test, teardown_${name}_test);
+	tcase_add_test(tc, test_${name});
+	return tc;
+}
+
+CHECK_MAIN_STANDALONE(${name});
