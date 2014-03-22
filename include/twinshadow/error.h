@@ -75,6 +75,9 @@
 #define TS_ERR_NONZERO(__val) \
 	TS_CHECK_DEBUG(__val == 0, "Value should be zero")
 
+#define TS_ERR_FD(__val) \
+	TS_CHECK_DEBUG(__val >= 0, "File Descriptor should be a non-negative integer")
+
 #define TS_ERR_STR_EMPTY(__val) \
 	TS_CHECK_DEBUG((__val)[0] != '\0', "String is empty")
 
