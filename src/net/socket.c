@@ -35,6 +35,7 @@ soconnect(struct addrinfo *ad)
 
 	TS_SOCK_OPEN(ad, sock_fd);
 	TS_SOCK_CONNECT(ad, sock_fd);
+	goto out;
 
 error:
 	TS_SOCK_CLOSE(sock_fd);
@@ -52,6 +53,7 @@ sobind(struct addrinfo *ad)
 
 	TS_SOCK_OPEN(ad, sock_fd);
 	TS_SOCK_BIND(ad, sock_fd);
+	goto out;
 
 error:
 	TS_SOCK_CLOSE(sock_fd);

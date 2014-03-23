@@ -33,7 +33,7 @@ ts_getaddr_unix(const char *path,
               const int socktype,
 	      const int flags,
 	      const int proto) {
-	struct addrinfo *adr;
+	struct addrinfo *adr = NULL;
 	struct sockaddr_un *sun;
 
 	sun = calloc(1, sizeof(struct sockaddr_un));
